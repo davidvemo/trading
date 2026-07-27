@@ -718,6 +718,7 @@ const DEFAULT_CONFIG = {
   crypto: ['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','ADAUSDT','DOGEUSDT','AVAXUSDT','LINKUSDT','DOTUSDT','MATICUSDT','LTCUSDT','SHIBUSDT','TRXUSDT','UNIUSDT','ATOMUSDT','NEARUSDT','APTUSDT','ARBUSDT','OPUSDT','INJUSDT','SUIUSDT','TIAUSDT','RNDRUSDT','FETUSDT']
 };
 let config = loadConfig();
+window.dtConfig = config;
 let autoRefreshOn = true, refreshTimer = null;
 let alertedSymbols = new Set();
 let favorites = new Set(JSON.parse(localStorage.getItem('dt_favs') || '[]'));
@@ -2120,6 +2121,7 @@ const NotifConfig = {
   save(c) { localStorage.setItem('dt_notif_cfg', JSON.stringify(c)); }
 };
 let notifCfg = NotifConfig.load();
+window.notifCfg = notifCfg;   // exponer globalmente para evitar problemas de scope
 
 const Notifs = {
   lastSent: {}, // key -> timestamp
@@ -3422,11 +3424,14 @@ updateAll().then(() => { if (autoRefreshOn) startAutoRefresh(); });
 
 // ===================== HANDLERS ROBUSTOS (al final, siempre corren) =====================
 (function wireRobustHandlers() {
+  // Referencias seguras (evita ReferenceError si el scope cambia)
+  var NC = (typeof notifCfg !== 'undefined') ? notifCfg : (window.notifCfg || { telegramToken:'', telegramChat:'', enabled:false, sound:true });
+  var CF = (typeof config !== 'undefined') ? config : (window.dtConfig || { finnhubKey:'' });
   // Boton TG dedicado
   const tgBtn = $id('btn-tg-test');
   if (tgBtn) {
     tgBtn.addEventListener('click', async () => {
-      if (!notifCfg.telegramToken || !notifCfg.telegramChat) {
+      if (!NC.telegramToken || !NC.telegramChat) {
         alert('Telegram no configurado.\n\nVe a Configuracion (engrane) -> seccion "Telegram Bot"\ny pega tu token + chat ID, luego Guardar.');
         return;
       }
@@ -3458,11 +3463,11 @@ updateAll().then(() => { if (autoRefreshOn) startAutoRefresh(); });
       diag += 'Protocolo: ' + proto + (isFile ? '  [!] file:// BLOQUEA notifs nativas' : '  [OK]') + '\n';
       diag += 'API Notification: ' + (hasAPI ? '[OK] disponible' : '[!] no soportada') + '\n';
       diag += 'Permiso: ' + perm + '\n';
-      diag += 'Notif activadas: ' + (notifCfg.enabled ? '[OK] si' : '[!] no (dale click a Notif)') + '\n';
-      diag += 'Sonido: ' + (notifCfg.sound ? '[OK] si' : 'no') + '\n';
-      diag += 'Telegram token: ' + (notifCfg.telegramToken ? '[OK] ' + notifCfg.telegramToken.slice(0,10) + '...' : '[!] vacio') + '\n';
-      diag += 'Telegram chat: ' + (notifCfg.telegramChat || '[!] vacio') + '\n';
-      diag += 'Finnhub key: ' + (config.finnhubKey ? '[OK] ' + config.finnhubKey.slice(0,8) + '...' : 'vacio (usa Yahoo)') + '\n';
+      diag += 'Notif activadas: ' + (NC.enabled ? '[OK] si' : '[!] no (dale click a Notif)') + '\n';
+      diag += 'Sonido: ' + (NC.sound ? '[OK] si' : 'no') + '\n';
+      diag += 'Telegram token: ' + (NC.telegramToken ? '[OK] ' + NC.telegramToken.slice(0,10) + '...' : '[!] vacio') + '\n';
+      diag += 'Telegram chat: ' + (NC.telegramChat || '[!] vacio') + '\n';
+      diag += 'Finnhub key: ' + (CF.finnhubKey ? '[OK] ' + CF.finnhubKey.slice(0,8) + '...' : 'vacio (usa Yahoo)') + '\n';
       diag += 'Errores JS capturados: ' + window.__dtErrors.length + '\n';
       if (window.__dtErrors.length) diag += '  -> ' + window.__dtErrors.slice(0,3).join('\n  -> ') + '\n';
       diag += 'Tickers cargados: ' + (typeof lastAllItems !== 'undefined' ? lastAllItems.length : '?') + '\n';
@@ -3490,7 +3495,7 @@ updateAll().then(() => { if (autoRefreshOn) startAutoRefresh(); });
       } catch(e) { diag += '\nToast fallo: ' + e.message; }
 
       // Telegram
-      if (notifCfg.telegramToken && notifCfg.telegramChat) {
+      if (NC.telegramToken && NC.telegramChat) {
         try {
           await Notifs.sendTelegram('🔔 TEST desde boton Test\n' + new Date().toLocaleString('es-MX'), {});
           diag += '\nTelegram: ENVIADO [OK]';
@@ -3501,9 +3506,9 @@ updateAll().then(() => { if (autoRefreshOn) startAutoRefresh(); });
 
       diag += '\n\n--- QUE HACER ---\n';
       if (isFile) diag += '* Estas en file://. Corre deploy.bat y usa\n  https://davidvemo.github.io/trading/day_trading_monitor.html\n  para notifs nativas de Windows.\n';
-      if (!notifCfg.enabled) diag += '* Dale click al boton "Notif" para activarlas.\n';
+      if (!NC.enabled) diag += '* Dale click al boton "Notif" para activarlas.\n';
       if (perm === 'denied') diag += '* Permiso bloqueado: en Chrome ve a Configuracion del sitio y permite notificaciones.\n';
-      if (notifCfg.telegramToken && notifCfg.telegramChat) diag += '* Telegram esta configurado: recibiras alertas al celular sin importar el protocolo.\n';
+      if (NC.telegramToken && NC.telegramChat) diag += '* Telegram esta configurado: recibiras alertas al celular sin importar el protocolo.\n';
 
       console.log(diag);
       alert(diag);
@@ -3511,8 +3516,228 @@ updateAll().then(() => { if (autoRefreshOn) startAutoRefresh(); });
   }
 })();
 
-console.log('[DT] Init completo. Errores:', window.__dtErrors.length, '| Telegram:', !!(notifCfg && notifCfg.telegramToken), '| Finnhub:', !!(config && config.finnhubKey));
+try {
+  var _nc = (typeof notifCfg !== 'undefined') ? notifCfg : (window.notifCfg || {});
+  var _cf = (typeof config !== 'undefined') ? config : (window.dtConfig || {});
+  console.log('[DT] Init completo. Errores:', window.__dtErrors.length, '| Telegram:', !!_nc.telegramToken, '| Finnhub:', !!_cf.finnhubKey);
+} catch(e) { console.log('[DT] Init con warnings:', e.message); }
+
+
+// ===================== BACKGROUND-SAFE TIMER (Web Worker) =====================
+// Los navegadores frenan setInterval en pestanas de fondo (hasta 1x/min o menos).
+// Un Web Worker mantiene el ritmo real, asi las alertas siguen llegando.
+let dtWorker = null;
+let workerTickCount = 0;
+
+function startWorkerTimer(intervalSec) {
+  stopWorkerTimer();
+  try {
+    const workerCode = 'let iv=null;self.onmessage=function(e){' +
+      'if(e.data.cmd==="start"){if(iv)clearInterval(iv);iv=setInterval(function(){self.postMessage({tick:Date.now()})},e.data.ms);}' +
+      'else if(e.data.cmd==="stop"){if(iv)clearInterval(iv);iv=null;}' +
+      '};';
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    dtWorker = new Worker(URL.createObjectURL(blob));
+    dtWorker.onmessage = function() {
+      workerTickCount++;
+      const ind = document.getElementById('keepalive-ind');
+      if (ind) ind.textContent = '⚡ ' + workerTickCount;
+      try { updateAll(); } catch(e) { console.error('[DT] updateAll fail', e); }
+    };
+    dtWorker.postMessage({ cmd: 'start', ms: Math.max(20000, intervalSec * 1000) });
+    console.log('[DT] Worker timer activo cada', intervalSec, 'seg (inmune a throttling de fondo)');
+    return true;
+  } catch(e) {
+    console.warn('[DT] Worker no disponible, usando setInterval normal:', e.message);
+    return false;
+  }
+}
+function stopWorkerTimer() {
+  if (dtWorker) {
+    try { dtWorker.postMessage({ cmd: 'stop' }); dtWorker.terminate(); } catch(e){}
+    dtWorker = null;
+  }
+}
+
+// Reemplazar el auto-refresh por la version con worker
+if (typeof startAutoRefresh === 'function') {
+  const _origStart = startAutoRefresh;
+  startAutoRefresh = function() {
+    const cfgObj = (typeof config !== 'undefined') ? config : (window.dtConfig || { intervalSec: 60 });
+    const ok = startWorkerTimer(cfgObj.intervalSec || 60);
+    if (!ok) _origStart();   // fallback si Worker falla
+  };
+}
+if (typeof stopAutoRefresh === 'function') {
+  const _origStop = stopAutoRefresh;
+  stopAutoRefresh = function() { stopWorkerTimer(); _origStop(); };
+}
+
+// Reiniciar worker si el usuario regresa a la pestana (por si el navegador lo suspendio)
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && dtWorker === null && typeof autoRefreshOn !== 'undefined' && autoRefreshOn) {
+    startAutoRefresh();
+  }
+});
+
+// Indicador visual de keep-alive
+(function addKeepaliveIndicator() {
+  const ms = document.getElementById('market-status');
+  if (!ms || document.getElementById('keepalive-ind')) return;
+  const span = document.createElement('span');
+  span.id = 'keepalive-ind';
+  span.title = 'Ciclos de actualizacion completados (worker en segundo plano)';
+  span.style.cssText = 'font-size:10px;color:var(--text-faint);margin-left:6px;font-variant-numeric:tabular-nums';
+  span.textContent = '⚡ 0';
+  ms.parentNode.insertBefore(span, ms.nextSibling);
+})();
+
+// Arrancar el worker de una vez
+if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
+  setTimeout(function(){ try { startAutoRefresh(); } catch(e) { console.error(e); } }, 2000);
+}
 
 </script>
+
+<script>
+/* ============================================================
+   PANEL DE DIAGNOSTICO AUTONOMO
+   No depende de ninguna variable del script principal.
+   Si el script principal falla, esto sigue funcionando.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var CFG_KEY = 'dt_notif_cfg';
+
+  function readCfg() {
+    try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function writeCfg(patch) {
+    var c = readCfg();
+    for (var k in patch) c[k] = patch[k];
+    localStorage.setItem(CFG_KEY, JSON.stringify(c));
+    // sincronizar con el script principal si existe
+    if (window.notifCfg) { for (var k2 in patch) window.notifCfg[k2] = patch[k2]; }
+    return c;
+  }
+
+  function log(msg, kind) {
+    var out = document.getElementById('dtdiag-out');
+    if (!out) return;
+    var colors = { ok: '#16c784', err: '#ea3943', warn: '#f5b041', info: '#8b96ad' };
+    var line = document.createElement('div');
+    line.style.cssText = 'padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06);color:' + (colors[kind] || colors.info);
+    line.textContent = new Date().toLocaleTimeString('es-MX') + '  ' + msg;
+    out.insertBefore(line, out.firstChild);
+    while (out.childNodes.length > 40) out.removeChild(out.lastChild);
+  }
+
+  async function tgSend(token, chat, text) {
+    if (!token || !chat) throw new Error('Falta token o chat ID');
+    var url = 'https://api.telegram.org/bot' + token.trim() + '/sendMessage'
+            + '?chat_id=' + encodeURIComponent(chat.trim())
+            + '&text=' + encodeURIComponent(text)
+            + '&disable_web_page_preview=true';
+    var r = await fetch(url);
+    var txt = await r.text();
+    var data = null;
+    try { data = JSON.parse(txt); } catch (e) {}
+    if (!r.ok || (data && data.ok === false)) {
+      throw new Error('HTTP ' + r.status + ' :: ' + (data && data.description ? data.description : txt.slice(0, 200)));
+    }
+    return data;
+  }
+
+  function buildPanel() {
+    if (document.getElementById('dtdiag')) return;
+    var cfg = readCfg();
+
+    var wrap = document.createElement('div');
+    wrap.id = 'dtdiag';
+    wrap.style.cssText = 'position:fixed;bottom:12px;left:12px;width:400px;max-width:calc(100vw - 24px);background:#0f1521;border:1px solid #4f8cff;border-radius:10px;z-index:9998;font-family:-apple-system,Segoe UI,sans-serif;box-shadow:0 10px 40px rgba(0,0,0,.7);overflow:hidden';
+
+    wrap.innerHTML =
+      '<div id="dtdiag-head" style="padding:9px 12px;background:linear-gradient(90deg,#4f8cff,#a855f7);color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer">'
+      + '<span>🔧 Diagnóstico y Telegram</span>'
+      + '<span id="dtdiag-toggle" style="font-size:14px">▾</span>'
+      + '</div>'
+      + '<div id="dtdiag-body" style="padding:12px">'
+
+      + '<div style="font-size:10px;color:#8b96ad;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Bot Token</div>'
+      + '<input id="dtdiag-token" type="text" placeholder="123456:AAE..." value="' + (cfg.telegramToken || '').replace(/"/g, '&quot;') + '" style="width:100%;background:#0a0f1a;border:1px solid #243049;color:#e8eef9;padding:7px 9px;border-radius:5px;font-family:monospace;font-size:11px;margin-bottom:8px">'
+
+      + '<div style="font-size:10px;color:#8b96ad;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Chat ID</div>'
+      + '<input id="dtdiag-chat" type="text" placeholder="8886670274" value="' + (cfg.telegramChat || '').replace(/"/g, '&quot;') + '" style="width:100%;background:#0a0f1a;border:1px solid #243049;color:#e8eef9;padding:7px 9px;border-radius:5px;font-family:monospace;font-size:11px;margin-bottom:10px">'
+
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'
+      + '<button id="dtdiag-save" style="flex:1;min-width:100px;background:#16c784;color:#fff;border:none;padding:8px;border-radius:5px;font-size:11.5px;font-weight:600;cursor:pointer">💾 Guardar + Probar</button>'
+      + '<button id="dtdiag-check" style="background:#1a2237;color:#e8eef9;border:1px solid #243049;padding:8px 10px;border-radius:5px;font-size:11.5px;cursor:pointer">🔍 Estado</button>'
+      + '</div>'
+
+      + '<div style="font-size:10px;color:#8b96ad;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Log</div>'
+      + '<div id="dtdiag-out" style="max-height:160px;overflow-y:auto;background:#06090f;border:1px solid #243049;border-radius:5px;padding:7px 9px;font-family:monospace;font-size:10.5px;line-height:1.5"></div>'
+
+      + '<div style="margin-top:8px;font-size:10px;color:#5a6478;line-height:1.5">Este panel funciona independientemente del resto. Guarda las credenciales en el mismo almacenamiento que usa el dashboard.</div>'
+      + '</div>';
+
+    document.body.appendChild(wrap);
+
+    // Colapsar/expandir
+    var collapsed = false;
+    document.getElementById('dtdiag-head').addEventListener('click', function () {
+      collapsed = !collapsed;
+      document.getElementById('dtdiag-body').style.display = collapsed ? 'none' : 'block';
+      document.getElementById('dtdiag-toggle').textContent = collapsed ? '▸' : '▾';
+    });
+
+    // Guardar + probar
+    document.getElementById('dtdiag-save').addEventListener('click', async function () {
+      var token = document.getElementById('dtdiag-token').value.trim();
+      var chat  = document.getElementById('dtdiag-chat').value.trim();
+      if (!token || !chat) { log('Falta token o chat ID', 'err'); return; }
+      writeCfg({ telegramToken: token, telegramChat: chat, enabled: true, sound: true, movers: true, premarket: true, positions: true });
+      log('Credenciales guardadas en localStorage', 'ok');
+      log('Enviando mensaje de prueba...', 'info');
+      try {
+        var res = await tgSend(token, chat, '✅ Day Trading Pro conectado\n' + new Date().toLocaleString('es-MX') + '\n\nRecibirás aquí:\n• Briefings pre-market\n• Top movers\n• Setup matches\n• Stop-loss / Take-profit');
+        log('ENVIADO OK — message_id ' + (res && res.result ? res.result.message_id : '?'), 'ok');
+        log('Revisa tu Telegram ahora', 'ok');
+      } catch (e) {
+        log('FALLO: ' + e.message, 'err');
+        if (/chat not found/i.test(e.message)) log('→ Chat ID incorrecto, o no le has escrito al bot', 'warn');
+        if (/unauthorized/i.test(e.message)) log('→ Token incorrecto o revocado', 'warn');
+        if (/Failed to fetch|NetworkError/i.test(e.message)) log('→ Red bloqueada (firewall/VPN) o CORS', 'warn');
+      }
+    });
+
+    // Estado del sistema
+    document.getElementById('dtdiag-check').addEventListener('click', function () {
+      var cfg2 = readCfg();
+      log('--- ESTADO ---', 'info');
+      log('Protocolo: ' + location.protocol + (location.protocol === 'file:' ? ' (notifs nativas bloqueadas)' : ' OK'), location.protocol === 'file:' ? 'warn' : 'ok');
+      log('Notification API: ' + (typeof Notification !== 'undefined' ? Notification.permission : 'no soportada'), 'info');
+      log('Token guardado: ' + (cfg2.telegramToken ? cfg2.telegramToken.slice(0, 12) + '...' : 'VACIO'), cfg2.telegramToken ? 'ok' : 'err');
+      log('Chat guardado: ' + (cfg2.telegramChat || 'VACIO'), cfg2.telegramChat ? 'ok' : 'err');
+      log('notifCfg global: ' + (window.notifCfg ? 'existe' : 'NO EXISTE (script principal fallo)'), window.notifCfg ? 'ok' : 'err');
+      log('Tickers cargados: ' + (window.lastAllItems ? window.lastAllItems.length : 'n/d'), 'info');
+      log('Worker activo: ' + (window.dtWorker ? 'si' : 'no'), window.dtWorker ? 'ok' : 'warn');
+      var errs = window.__dtErrors || [];
+      log('Errores JS: ' + errs.length, errs.length ? 'err' : 'ok');
+      errs.slice(0, 3).forEach(function (e) { log('  → ' + e, 'err'); });
+    });
+
+    log('Panel listo. Pega tus credenciales y dale Guardar + Probar.', 'info');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildPanel);
+  } else {
+    buildPanel();
+  }
+})();
+</script>
+
 </body>
 </html>
