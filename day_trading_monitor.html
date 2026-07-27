@@ -249,6 +249,8 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
     <button class="control" id="btn-settings" title="Configuración">⚙</button>
     <button class="control" id="btn-notif" title="Activar notificaciones del navegador">🔔 Notif</button>
     <button class="control" id="btn-notif-test" title="Probar notificación ahora">▶ Test</button>
+    <button class="control" id="btn-tg-test" title="Enviar mensaje de prueba a Telegram" style="background:var(--purple);color:#fff;border:none">📱 TG</button>
+    <button class="control" id="btn-briefing" title="Generar briefing pre-market y enviarlo a Telegram" style="background:linear-gradient(90deg,var(--blue),var(--purple));color:#fff;border:none">📋 Briefing</button>
     <button class="control active" id="btn-autorefresh">⏱ ON</button>
   </div>
 </div>
@@ -311,6 +313,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
   <button class="tab active" data-tab="all">📊 Todo</button>
   <button class="tab" data-tab="movers">🔥 Top Movers</button>
   <button class="tab" data-tab="fund">💎 Fundamental</button>
+  <button class="tab" data-tab="setups">🎯 Setup Alerts</button>
   <button class="tab" data-tab="chart-full">📈 Gráfico Detalle</button>
   <button class="tab" data-tab="journal">📒 Bitácora Paper Trading</button>
   <button class="tab" data-tab="scanner">🔍 Scanner Mercado</button>
@@ -365,6 +368,51 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
           <div class="risk-tip"><div style="flex:1"><div class="tip-title">Dividend Yield</div><div class="tip-body">% anual que paga la empresa en dividendos. Para day trading no importa (no mantienes posición). Para swing/long-term sí.</div></div></div>
           <div class="risk-tip"><div style="flex:1"><div class="tip-title">Forward P/E</div><div class="tip-body">P/E calculado con ganancias esperadas a 12 meses. Si Forward P/E < P/E actual, analistas esperan crecimiento de utilidades.</div></div></div>
         </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="setups">
+      <div class="section" style="border-color:rgba(79,140,255,.4)">
+        <div class="section-header" style="background:linear-gradient(90deg,rgba(79,140,255,.15),rgba(168,85,247,.05))">
+          <h2 style="color:var(--blue)">📋 Briefing Pre-Market</h2>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <label style="font-size:11px;color:var(--text-dim)">🇺🇸 US:</label>
+            <input type="number" id="brief-count-us" value="20" min="0" max="50" style="width:48px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:11px">
+            <label style="font-size:11px;color:var(--text-dim)">🇲🇽 BMV:</label>
+            <input type="number" id="brief-count-bmv" value="20" min="0" max="50" style="width:48px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:11px">
+            <label style="font-size:11px;color:var(--text-dim)">🪙 Crypto:</label>
+            <input type="number" id="brief-count-crypto" value="10" min="0" max="50" style="width:48px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:11px">
+            <button class="control" onclick="generateBriefing(false)">🔄 Generar</button>
+            <button class="control" onclick="generateBriefing(true)" style="background:var(--purple);color:#fff;border:none">📱 Enviar a Telegram</button>
+          </div>
+        </div>
+        <div style="padding:9px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.5">
+          <strong style="color:var(--yellow)">⏰ Horarios clave (hora CDMX):</strong>
+          <span id="brief-schedule"></span>
+        </div>
+        <div id="body-briefing"><div class="empty-journal"><span class="big">📋</span>Click "Generar" para crear tu lista de candidatos pre-market ordenada por Activity Score, con precios y niveles sugeridos de stop/target.</div></div>
+      </div>
+
+      
+      <div class="disclaimer-paper">
+        <div class="icon">🎯</div>
+        <div><strong>Setup Alerts = criterios objetivos, NO señales de compra.</strong> Cada template revisa las acciones en tus watchlists (US, ETF, BMV, Crypto) contra criterios como "gap pre-market + RVOL alto + cerca de máximo 52w". Cuando una cumple, te llega notificación (navegador + Telegram si está activo). <strong>Tú decides si comprar</strong>. Yo NO te recomiendo qué operar — te doy información objetiva para que tomes decisiones informadas.</div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>⚙ Templates de Setup</h2>
+          <span class="meta" id="setups-summary">0 activos · 0 matches en sesión</span>
+        </div>
+        <div id="body-setup-templates"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>📋 Matches Recientes <span class="count" id="count-setup-matches">0</span></h2>
+          <button class="btn-csv" onclick="clearSetupMatches()">🗑 Limpiar log</button>
+        </div>
+        <div id="body-setup-matches"><div class="empty-journal"><span class="big">🎯</span>Aún no hay matches. Los criterios se revisan en cada actualización (cada minuto).</div></div>
       </div>
     </div>
 
@@ -452,6 +500,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
             <div class="field"><label>Stop-Loss (precio)</label><input type="number" id="tt-stop" step="0.01" placeholder="opcional" oninput="updateTradePreview()"></div>
             <div class="field"><label>Take-Profit (precio)</label><input type="number" id="tt-tp" step="0.01" placeholder="opcional" oninput="updateTradePreview()"></div>
             <div class="field"><label>Trailing Stop %</label><input type="number" id="tt-trailing" step="0.5" placeholder="ej: 1.5" oninput="updateTradePreview()"></div>
+            <div class="field"><label>Aviso proximidad %</label><input type="number" id="tt-proximity" step="5" value="25" min="5" max="90" placeholder="25" title="Te avisa cuando el precio recorra este % de la distancia hacia tu stop o target"></div>
             <div class="field"><label>Notas (setup, razón)</label><input type="text" id="tt-notes" placeholder="ej: breakout con noticia"></div>
           </div>
           <div id="trade-preview" class="trade-preview" style="display:none"></div>
@@ -605,11 +654,67 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
   <div class="toast-body" id="toast-body"></div>
 </div>
 <script>
+
+// ===================== ERROR CAPTURE (debe ir primero) =====================
+window.__dtErrors = [];
+function showErrorBanner(msg) {
+  let el = document.getElementById('dt-error-banner');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'dt-error-banner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ea3943;color:#fff;padding:10px 14px;font-family:monospace;font-size:11px;z-index:9999;max-height:180px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,.5)';
+    el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><strong>⚠ Error de JavaScript detectado</strong> (copia esto y mándalo para diagnóstico)<div id="dt-error-list" style="margin-top:5px"></div></div><button onclick="this.parentElement.parentElement.style.display=\'none\'" style="background:rgba(0,0,0,.3);border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;flex-shrink:0">✕</button></div>';
+    document.body.insertBefore(el, document.body.firstChild);
+  }
+  el.style.display = 'block';
+  const list = document.getElementById('dt-error-list');
+  if (list && window.__dtErrors.length <= 8) list.innerHTML += '<div style="padding:2px 0;border-top:1px solid rgba(255,255,255,.2)">' + msg + '</div>';
+}
+window.addEventListener('error', function(e) {
+  const msg = (e.message || 'error') + ' @ linea ' + (e.lineno||'?') + ':' + (e.colno||'?');
+  window.__dtErrors.push(msg);
+  console.error('[DT ERROR]', msg, e.error);
+  showErrorBanner(msg);
+});
+window.addEventListener('unhandledrejection', function(e) {
+  const msg = 'Promise rechazada: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
+  window.__dtErrors.push(msg);
+  console.error('[DT REJECTION]', msg);
+});
+// Helper seguro para elementos
+function $id(id) { return document.getElementById(id); }
+function safeVal(id, dflt) { const e = $id(id); return e ? e.value : dflt; }
+function safeChecked(id, dflt) { const e = $id(id); return e ? e.checked : dflt; }
+function safeText(id, txt) { const e = $id(id); if (e) e.textContent = txt; }
+function safeHTML(id, h) { const e = $id(id); if (e) e.innerHTML = h; }
+
+
 const DEFAULT_CONFIG = {
   threshold: 3.0, intervalSec: 60, finnhubKey: '',
   us: ['AAPL','MSFT','NVDA','TSLA','AMD','META','GOOGL','AMZN','NFLX','AVGO','PLTR','COIN','SHOP','UBER','SOFI','RIVN','LCID','MARA','RIOT','SMCI','MU','INTC','BABA','DIS','PYPL','SQ','SNAP','PINS','ROKU','DKNG','HOOD','GME','AMC','TLRY','BAC','JPM','WMT','XOM','CVX','BA','GE'],
   etf: ['SPY','QQQ','IWM','DIA','VTI','VOO','ARKK','XLK','XLF','XLE','XLV','XLI','GLD','SLV','TLT','HYG','VNQ','EEM','VWO','SOXX','SMH','UVXY','TQQQ','SQQQ','SPXS','SPXL'],
-  bmv: ['AMXL.MX','WALMEX.MX','FEMSAUBD.MX','GMEXICOB.MX','BIMBOA.MX','CEMEXCPO.MX','ALSEA.MX','ALFAA.MX','GFNORTEO.MX','GAPB.MX','ASURB.MX','TLEVISACPO.MX','KOFUBL.MX','MEGACPO.MX','BBAJIOO.MX','VESTA.MX','FIBRAPL14.MX'],
+  bmv: [
+    // IPC 35 constituents (top mexican stocks)
+    'AMXL.MX','AMXB.MX','WALMEX.MX','FEMSAUBD.MX','FEMSAUB.MX','GMEXICOB.MX','BIMBOA.MX','CEMEXCPO.MX',
+    'ALSEA.MX','ALFAA.MX','GFNORTEO.MX','GAPB.MX','ASURB.MX','TLEVISACPO.MX','KOFUBL.MX',
+    'MEGACPO.MX','PE&OLES.MX','GRUMAB.MX','LIVEPOLC-1.MX','ELEKTRA.MX','VESTA.MX','ARA.MX',
+    'BOLSAA.MX','R.MX','KIMBERA.MX','VOLARA.MX','LAB.MX','PINFRA.MX','ORBIA.MX','GENTERA.MX',
+    'GCARSOA1.MX','GCC.MX','CUERVO.MX','BBAJIOO.MX','LACOMERUBC.MX','GFINBURO.MX','CHDRAUIB.MX',
+    // Mid-cap y mercado ampliado
+    'ELEMENT.MX','SITES1A-1.MX','HERDEZ.MX','AGUA.MX','GISSAA.MX','MFRISCOA-1.MX','QUALITAS.MX',
+    'CREAL.MX','GMXT.MX','LALAB.MX','SORIANAB.MX','GRUMAB.MX','GRUM.MX','GENTERA.MX','GCARSO.MX',
+    'IENOVA.MX','POCHTECB.MX','PAPPEL.MX','GBM.MX','ACTINVRB.MX','FINDEP.MX','MEDICAB.MX',
+    'LAMOSA.MX','HCITY.MX','SPORT.MX','JAVER.MX','CULTIBAB.MX','ARISTOS.MX','CIDMEGA.MX',
+    'GPROFUT.MX','CIE.MX','FRAGUAB.MX','ARGON.MX','CADUA.MX','GEO.MX','HOMEX.MX','HOTEL.MX',
+    'HILASAL.MX','MAXCOMA.MX','NEMAKA.MX','POSADASA.MX','RASSINIA.MX','SIMECB.MX','VITROA.MX',
+    'CMOCTEZ.MX','ARISTOS.MX','SAB.MX','ACCELSAB.MX','MAXCOMCPO.MX',
+    // FIBRAs (Bienes raices mexicanos - REITs)
+    'FUNO11.MX','FIBRAPL14.MX','TERRA13.MX','FIBRAMQ12.MX','FIHO12.MX','FSHOP13.MX','DANHOS13.MX',
+    'FMTY14.MX','FINN13.MX','FIBRAHD.MX','FIBRAMTY.MX','FIBRAPRO.MX','FNOVA17.MX','FSTORAGE18.MX',
+    'FPLUS16.MX','FCASA13.MX','FUNO12.MX','TERRAFINA.MX','FSHOP.MX',
+    // Indice IPC (referencia general)
+    '^MXX'
+  ],
   crypto: ['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','ADAUSDT','DOGEUSDT','AVAXUSDT','LINKUSDT','DOTUSDT','MATICUSDT','LTCUSDT','SHIBUSDT','TRXUSDT','UNIUSDT','ATOMUSDT','NEARUSDT','APTUSDT','ARBUSDT','OPUSDT','INJUSDT','SUIUSDT','TIAUSDT','RNDRUSDT','FETUSDT']
 };
 let config = loadConfig();
@@ -2059,7 +2164,9 @@ const Notifs = {
   updateBtn() {
     const btn = document.getElementById('btn-notif');
     if (!btn) return;
-    if (notifCfg.enabled && Notification.permission === 'granted') {
+    const hasAPI = (typeof Notification !== 'undefined');
+    const perm = hasAPI ? Notification.permission : 'unsupported';
+    if (notifCfg.enabled && perm === 'granted') {
       btn.classList.add('active');
       btn.textContent = '🔔 Notif ON';
       btn.title = 'Click para desactivar';
@@ -2112,15 +2219,21 @@ const Notifs = {
   },
 
   async sendTelegram(text, opts) {
-    if (!notifCfg.telegramToken || !notifCfg.telegramChat) return;
-    try {
-      const url = 'https://api.telegram.org/bot' + notifCfg.telegramToken + '/sendMessage';
-      await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ chat_id: notifCfg.telegramChat, text: text })
-      });
-    } catch(e) {}
+    if (!notifCfg.telegramToken || !notifCfg.telegramChat) {
+      throw new Error('Telegram no configurado (falta token o chat ID)');
+    }
+    // Usar GET con querystring evita problemas de CORS preflight con POST+JSON
+    const url = 'https://api.telegram.org/bot' + notifCfg.telegramToken + '/sendMessage'
+      + '?chat_id=' + encodeURIComponent(notifCfg.telegramChat)
+      + '&text=' + encodeURIComponent(text)
+      + '&disable_web_page_preview=true';
+    const r = await fetch(url);
+    let data = null;
+    try { data = await r.json(); } catch(e) {}
+    if (!r.ok || (data && data.ok === false)) {
+      throw new Error('Telegram API: ' + (data && data.description ? data.description : ('HTTP ' + r.status)));
+    }
+    return data;
   },
 
   resetTitleOnFocus() {
@@ -2333,18 +2446,21 @@ Journal.trackPrice = function(id, price) {
 const _origSaveSettings = window.saveSettings;
 window.saveSettings = function() {
   // Read notif settings BEFORE base save
-  notifCfg.movers = document.getElementById('cfg-notif-movers').checked;
-  notifCfg.premarket = document.getElementById('cfg-notif-premkt').checked;
-  notifCfg.positions = document.getElementById('cfg-notif-positions').checked;
-  notifCfg.sound = document.getElementById('cfg-notif-sound').checked;
-  notifCfg.cooldown = Math.max(1, parseInt(document.getElementById('cfg-notif-cooldown').value) || 15);
-  notifCfg.telegramToken = document.getElementById('cfg-tg-token').value.trim();
-  notifCfg.telegramChat = document.getElementById('cfg-tg-chat').value.trim();
-  NotifConfig.save(notifCfg);
-  _origSaveSettings();
-  // Test telegram if configured
+  try {
+    notifCfg.movers = safeChecked('cfg-notif-movers', true);
+    notifCfg.premarket = safeChecked('cfg-notif-premkt', true);
+    notifCfg.positions = safeChecked('cfg-notif-positions', true);
+    notifCfg.sound = safeChecked('cfg-notif-sound', true);
+    notifCfg.cooldown = Math.max(1, parseInt(safeVal('cfg-notif-cooldown','15')) || 15);
+    notifCfg.telegramToken = String(safeVal('cfg-tg-token','')).trim();
+    notifCfg.telegramChat = String(safeVal('cfg-tg-chat','')).trim();
+    NotifConfig.save(notifCfg);
+  } catch(e) { console.error('notif settings save fail', e); }
+  try { _origSaveSettings(); } catch(e) { console.error('base save fail', e); alert('Error guardando configuracion base: ' + e.message); }
   if (notifCfg.telegramToken && notifCfg.telegramChat) {
-    Notifs.sendTelegram('🔔 Day Trading Pro\n\nTelegram conectado correctamente. Recibirás alertas aquí.', { ticker: 'test' });
+    Notifs.sendTelegram('🔔 Day Trading Pro\n\nTelegram conectado correctamente. Recibiras alertas aqui.', { ticker: 'test' })
+      .then(() => console.log('[TG] test enviado'))
+      .catch(e => { console.error('[TG] fail', e); alert('Telegram guardado pero el envio de prueba fallo: ' + e.message); });
   }
 };
 
@@ -2360,6 +2476,900 @@ openModal = function() {
   document.getElementById('cfg-tg-token').value = notifCfg.telegramToken;
   document.getElementById('cfg-tg-chat').value = notifCfg.telegramChat;
 };
+
+
+// ===================== SETUP ALERTS SYSTEM =====================
+const SETUP_TEMPLATES = [
+  {
+    id: 'gap_and_go',
+    label: '🌅 Gap & Go (US)',
+    description: 'Pre-market gap arriba ≥3% con RVOL ≥2. El setup clásico de gap trading — señal de momentum sostenible al abrir mercado.',
+    check: (it) => it.market === 'us' && it.preMarketPct != null && it.preMarketPct >= 3 && it.rvol != null && it.rvol >= 2,
+    sound: 'warning'
+  },
+  {
+    id: 'gap_down_short',
+    label: '📉 Gap Down (short candidate)',
+    description: 'Pre-market gap abajo ≤-3% con RVOL ≥2. Candidato para short o rebote técnico.',
+    check: (it) => it.market === 'us' && it.preMarketPct != null && it.preMarketPct <= -3 && it.rvol != null && it.rvol >= 2,
+    sound: 'critical'
+  },
+  {
+    id: 'momentum_breakout',
+    label: '🚀 Momentum Breakout',
+    description: 'Precio en el top 10% del rango 52 semanas, cambio del día >2%, RVOL ≥3. Ruptura con volumen — posible continuación alcista.',
+    check: (it) => {
+      if (!it.high52w || !it.low52w || !it.price) return false;
+      const pos = (it.price - it.low52w) / (it.high52w - it.low52w);
+      return pos > 0.9 && it.changePct > 2 && it.rvol != null && it.rvol >= 3;
+    },
+    sound: 'success'
+  },
+  {
+    id: 'reversal_candidate',
+    label: '🔄 Reversal Candidate',
+    description: 'Precio en el bottom 15% del rango 52 semanas, cambio positivo, RVOL ≥2. Posible rebote técnico desde soporte.',
+    check: (it) => {
+      if (!it.high52w || !it.low52w || !it.price) return false;
+      const pos = (it.price - it.low52w) / (it.high52w - it.low52w);
+      return pos < 0.15 && it.changePct > 1 && it.rvol != null && it.rvol >= 2;
+    },
+    sound: 'normal'
+  },
+  {
+    id: 'value_momentum',
+    label: '💎 Value + Momentum',
+    description: 'P/E <15, large cap (>$10B), cambio >3%. Mezcla de valor razonable con impulso — más para swing que day trading.',
+    check: (it) => it.pe && it.pe > 0 && it.pe < 15 && it.changePct > 3 && it.marketCap && it.marketCap > 10e9,
+    sound: 'normal'
+  },
+  {
+    id: 'small_cap_runner',
+    label: '⚡ Small Cap Runner (US)',
+    description: 'Small cap ($100M-$2B), cambio >5%, RVOL ≥5. Alta volatilidad — donde se ganan/pierden cuentas rápido.',
+    check: (it) => it.market === 'us' && it.marketCap && it.marketCap < 2e9 && it.marketCap > 100e6 && it.changePct > 5 && it.rvol && it.rvol >= 5,
+    sound: 'warning'
+  },
+  {
+    id: 'bmv_movers',
+    label: '🇲🇽 BMV Big Movers',
+    description: 'Acciones de la Bolsa Mexicana con movimiento ≥2% (arriba o abajo).',
+    check: (it) => it.market === 'bmv' && Math.abs(it.changePct) >= 2,
+    sound: 'normal'
+  },
+  {
+    id: 'bmv_extreme',
+    label: '🔥 BMV Extreme (>4%)',
+    description: 'Acciones mexicanas moviéndose ≥4% — raro en BMV, indica evento significativo.',
+    check: (it) => it.market === 'bmv' && Math.abs(it.changePct) >= 4,
+    sound: 'critical'
+  },
+  {
+    id: 'crypto_pump',
+    label: '🪙 Crypto Pump/Dump',
+    description: 'Criptomonedas con movimiento ≥8% en 24h. Alta volatilidad típica de crypto.',
+    check: (it) => it.market === 'crypto' && Math.abs(it.changePct) >= 8,
+    sound: 'warning'
+  },
+  {
+    id: 'extreme_move',
+    label: '🔥 Movimiento Extremo (todos)',
+    description: 'Cualquier activo con |cambio| ≥7% y RVOL ≥3. Algo grande está pasando ahí.',
+    check: (it) => Math.abs(it.changePct) >= 7 && it.rvol != null && it.rvol >= 3,
+    sound: 'critical'
+  },
+  {
+    id: 'oversold_bounce',
+    label: '↗ Oversold Bounce (US)',
+    description: 'Cambio positivo hoy después de caer >20% desde 52w high. Rebote potencial en acción vapuleada.',
+    check: (it) => {
+      if (!it.high52w || !it.price || it.market !== 'us') return false;
+      const drop = (it.high52w - it.price) / it.high52w;
+      return drop > 0.2 && it.changePct > 3 && it.rvol && it.rvol > 2;
+    },
+    sound: 'normal'
+  },
+  {
+    id: 'high_dividend_stable',
+    label: '💰 Alto Dividendo + Movimiento',
+    description: 'Yield >4% con movimiento del día >1.5%. Para traders de income con oportunidad puntual.',
+    check: (it) => it.dividendYield && it.dividendYield > 4 && Math.abs(it.changePct) > 1.5,
+    sound: 'normal'
+  }
+];
+
+// Persist enabled setups
+let enabledSetups = new Set(JSON.parse(localStorage.getItem('dt_setups_enabled') || '["gap_and_go","momentum_breakout","bmv_movers","extreme_move"]'));
+let matchedSetupsKeys = new Set(); // sessions dedup
+let setupMatchLog = JSON.parse(localStorage.getItem('dt_setup_matches') || '[]');
+
+function saveSetups() {
+  localStorage.setItem('dt_setups_enabled', JSON.stringify([...enabledSetups]));
+  localStorage.setItem('dt_setup_matches', JSON.stringify(setupMatchLog.slice(0, 100)));
+}
+
+window.toggleSetup = function(id) {
+  if (enabledSetups.has(id)) enabledSetups.delete(id);
+  else enabledSetups.add(id);
+  saveSetups();
+  renderSetupTemplates();
+};
+
+window.clearSetupMatches = function() {
+  if (!confirm('¿Borrar el log de matches?')) return;
+  setupMatchLog = [];
+  matchedSetupsKeys = new Set();
+  saveSetups();
+  renderSetupMatches();
+};
+
+function checkSetupMatches(items) {
+  const newMatches = [];
+  SETUP_TEMPLATES.forEach(setup => {
+    if (!enabledSetups.has(setup.id)) return;
+    items.forEach(it => {
+      try {
+        if (!setup.check(it)) return;
+      } catch(e) { return; }
+      const key = setup.id + '_' + it.symbol;
+      if (matchedSetupsKeys.has(key)) return;
+      matchedSetupsKeys.add(key);
+      const match = {
+        setupId: setup.id, setupLabel: setup.label,
+        symbol: it.symbol, name: it.name, market: it.market,
+        price: it.price, changePct: it.changePct,
+        preMarketPct: it.preMarketPct, rvol: it.rvol,
+        pe: it.pe, marketCap: it.marketCap,
+        time: Date.now()
+      };
+      setupMatchLog.unshift(match);
+      newMatches.push({ setup, item: it, match });
+    });
+  });
+  setupMatchLog = setupMatchLog.slice(0, 100);
+  saveSetups();
+  return newMatches;
+}
+
+function renderSetupTemplates() {
+  const container = document.getElementById('body-setup-templates');
+  if (!container) return;
+  const html = SETUP_TEMPLATES.map(s => {
+    const active = enabledSetups.has(s.id);
+    const matchCount = setupMatchLog.filter(m => m.setupId === s.id).length;
+    return `<div style="padding:12px 14px;border-bottom:1px solid var(--border-soft);display:flex;gap:12px;align-items:flex-start;cursor:pointer" onclick="toggleSetup('${s.id}')">
+      <div style="width:20px;height:20px;border-radius:4px;background:${active ? 'var(--green)' : 'var(--bg-input)'};border:1px solid ${active ? 'var(--green)' : 'var(--border)'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0;margin-top:2px">${active ? '✓' : ''}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px;margin-bottom:2px">${s.label} <span style="font-size:10px;color:var(--text-faint);font-weight:400">· ${matchCount} matches en sesión</span></div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.4">${s.description}</div>
+      </div>
+    </div>`;
+  }).join('');
+  container.innerHTML = html;
+  const activeCount = enabledSetups.size;
+  document.getElementById('setups-summary').textContent = activeCount + ' activos · ' + setupMatchLog.length + ' matches totales';
+}
+
+function renderSetupMatches() {
+  const container = document.getElementById('body-setup-matches');
+  if (!container) return;
+  document.getElementById('count-setup-matches').textContent = setupMatchLog.length;
+  if (!setupMatchLog.length) {
+    container.innerHTML = '<div class="empty-journal"><span class="big">🎯</span>Aún no hay matches. Los criterios se revisan en cada actualización (cada minuto).</div>';
+    return;
+  }
+  const rows = setupMatchLog.slice(0, 50).map(m => {
+    const ageMin = Math.round((Date.now() - m.time) / 60000);
+    const age = ageMin < 1 ? 'ahora' : (ageMin < 60 ? ageMin + 'm' : Math.floor(ageMin/60) + 'h ' + (ageMin%60) + 'm');
+    const isUp = m.changePct >= 0;
+    return `<tr class="row-click" onclick="showChart('${m.symbol}','${m.market}','${m.symbol}')">
+      <td style="font-size:11px;color:var(--text-dim)">${age}</td>
+      <td style="font-weight:600">${m.setupLabel}</td>
+      <td class="symbol-clickable" style="font-weight:600">${m.symbol}</td>
+      <td class="name">${m.name || '–'}</td>
+      <td class="right">$${fmtPrice(m.price)}</td>
+      <td class="right"><span class="change ${isUp?'up':'down'}">${fmtPct(m.changePct)}</span></td>
+      <td class="right">${m.rvol ? fmtRvol(m.rvol) : '–'}</td>
+      <td class="right">${m.preMarketPct != null ? '<span class="change ' + (m.preMarketPct>=0?'up':'down') + '" style="font-size:10px">' + fmtPct(m.preMarketPct) + ' PM</span>' : '–'}</td>
+    </tr>`;
+  }).join('');
+  container.innerHTML = `<div class="table-wrap"><table><thead><tr>
+    <th>Hace</th><th>Setup</th><th>Ticker</th><th>Nombre</th><th class="right">Precio</th>
+    <th class="right">Cambio</th><th class="right">RVOL</th><th class="right">PM</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// Hook into updateAll to run checks after each refresh
+const _origRenderAllForSetups = renderAll;
+renderAll = function() {
+  _origRenderAllForSetups();
+  const matches = checkSetupMatches(lastAllItems);
+  matches.forEach(m => {
+    const title = m.setup.label + ' · ' + m.item.symbol;
+    const parts = [
+      '$' + fmtPrice(m.item.price),
+      fmtPct(m.item.changePct)
+    ];
+    if (m.item.rvol) parts.push('RVOL ' + fmtRvol(m.item.rvol));
+    if (m.item.preMarketPct != null) parts.push('PM ' + fmtPct(m.item.preMarketPct));
+    const body = (m.item.name || m.item.symbol) + ' · ' + parts.join(' · ');
+    if (typeof Notifs !== 'undefined') {
+      Notifs.send(title, body, {
+        ticker: m.item.symbol,
+        eventType: 'setup_' + m.setup.id,
+        soundType: m.setup.sound || 'normal',
+        important: m.setup.sound === 'critical'
+      });
+    }
+  });
+  if (currentTab === 'setups') {
+    renderSetupTemplates();
+    renderSetupMatches();
+  }
+};
+
+// Render on tab click
+document.querySelectorAll('.tab[data-tab="setups"]').forEach(t => {
+  t.addEventListener('click', () => {
+    setTimeout(() => { renderSetupTemplates(); renderSetupMatches(); }, 50);
+  });
+});
+
+// Initial render
+renderSetupTemplates();
+renderSetupMatches();
+
+
+
+// ===================== PRE-MARKET BRIEFING =====================
+function getScheduleInfo() {
+  // Mexico is UTC-6 year-round (no DST since 2022). US ET is UTC-4 (EDT, Mar-Nov) or UTC-5 (EST).
+  const now = new Date();
+  const nowET = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const nowMX = new Date(now.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+  const offsetHours = Math.round((nowET - nowMX) / 3600000);
+  const isDST = offsetHours >= 2;
+  const usOpen = isDST ? '7:30' : '8:30';
+  const usPre = isDST ? '2:00' : '3:00';
+  const usClose = isDST ? '14:00' : '15:00';
+  // BMV: Mar 9 - Oct 30 2026 uses 7:30-14:00, otherwise 8:30-15:00
+  const mo = nowMX.getMonth(), day = nowMX.getDate();
+  const bmvHomologado = (mo > 2 || (mo === 2 && day >= 9)) && (mo < 9 || (mo === 9 && day <= 30));
+  const bmvOpen = bmvHomologado ? '7:30' : '8:30';
+  const bmvClose = bmvHomologado ? '14:00' : '15:00';
+  return { usPre, usOpen, usClose, bmvOpen, bmvClose, isDST, bmvHomologado, offsetHours };
+}
+
+function renderScheduleBar() {
+  const s = getScheduleInfo();
+  const el = document.getElementById('brief-schedule');
+  if (!el) return;
+  el.innerHTML = ' Pre-market US: <strong style="color:var(--text)">' + s.usPre + '</strong>'
+    + ' · Apertura US: <strong style="color:var(--green)">' + s.usOpen + '</strong>'
+    + ' · Cierre US: <strong style="color:var(--text)">' + s.usClose + '</strong>'
+    + ' &nbsp;|&nbsp; BMV: <strong style="color:var(--green)">' + s.bmvOpen + '</strong> a <strong style="color:var(--text)">' + s.bmvClose + '</strong>'
+    + (s.bmvHomologado ? ' <span style="color:var(--text-faint)">(horario homologado mar-oct)</span>' : '');
+}
+
+function buildBriefingList(count) {
+  count = count || 20;
+  const status = getMarketStatus();
+  const items = lastAllItems.filter(it => it.price != null && it.changePct != null);
+  // Score each item, prefer those with pre-market data during premkt hours
+  const scored = items.map(it => {
+    let score = calcActivityScore(it);
+    // Boost items with pre-market movement during pre-market
+    if (status.state === 'premkt' && it.preMarketPct != null) score += Math.abs(it.preMarketPct) * 2;
+    if (status.state === 'aftermkt' && it.postMarketPct != null) score += Math.abs(it.postMarketPct) * 2;
+    return Object.assign({}, it, { _briefScore: score });
+  });
+  scored.sort((a,b) => b._briefScore - a._briefScore);
+  return scored.slice(0, count);
+}
+
+function suggestLevels(it) {
+  // Suggest technical levels based on ATR-proxy (using 52w range as volatility proxy)
+  const price = it.price;
+  // Rough daily volatility estimate
+  let volPct = 2.0;
+  if (it.high52w && it.low52w) {
+    const range = (it.high52w - it.low52w) / it.low52w;
+    volPct = Math.max(1.0, Math.min(8.0, range * 100 / 25)); // rough daily vol
+  }
+  if (it.market === 'crypto') volPct = Math.max(volPct, 4);
+  const stopPct = Math.min(3, volPct * 0.6);
+  const targetPct = stopPct * 2; // 2:1 R:R minimum
+  return {
+    stop: price * (1 - stopPct/100),
+    target: price * (1 + targetPct/100),
+    stopPct: stopPct,
+    targetPct: targetPct
+  };
+}
+
+window.generateBriefing = function(sendTelegram) {
+  const count = parseInt(document.getElementById('brief-count').value) || 20;
+  const list = buildBriefingList(count);
+  const status = getMarketStatus();
+  const sched = getScheduleInfo();
+
+  if (!list.length) {
+    document.getElementById('body-briefing').innerHTML = '<div class="empty-journal"><span class="big">⚠️</span>Sin datos cargados. Si las fuentes muestran ✗ arriba, conecta Finnhub en ⚙ Configuración.</div>';
+    return;
+  }
+
+  // Render HTML table
+  const rows = list.map((it, i) => {
+    const lv = suggestLevels(it);
+    const isUp = it.changePct >= 0;
+    const pmVal = it.preMarketPct != null ? it.preMarketPct : (it.postMarketPct != null ? it.postMarketPct : null);
+    const pmLabel = it.preMarketPct != null ? 'PM' : (it.postMarketPct != null ? 'AH' : '');
+    const mktBadge = it.market === 'bmv' ? '🇲🇽' : it.market === 'crypto' ? '🪙' : '🇺🇸';
+    return '<tr class="row-click" onclick="showChart(\'' + (it.fullSymbol||it.symbol) + '\',\'' + it.market + '\',\'' + (it.fullSymbol||it.symbol) + '\')">'
+      + '<td style="color:var(--text-faint);font-size:11px">' + (i+1) + '</td>'
+      + '<td>' + mktBadge + '</td>'
+      + '<td class="symbol symbol-clickable">' + it.symbol + '</td>'
+      + '<td class="name">' + (it.name || '–') + '</td>'
+      + '<td class="right" style="font-weight:600">$' + fmtPrice(it.price) + '</td>'
+      + '<td class="right"><span class="change ' + (isUp?'up':'down') + '">' + fmtPct(it.changePct) + '</span></td>'
+      + '<td class="right">' + (pmVal != null ? '<span class="change ' + (pmVal>=0?'up':'down') + '" style="font-size:10px">' + fmtPct(pmVal) + ' ' + pmLabel + '</span>' : '–') + '</td>'
+      + '<td class="right">' + (it.rvol ? '<span class="rvol ' + rvolClass(it.rvol) + '">' + fmtRvol(it.rvol) + '</span>' : '–') + '</td>'
+      + '<td class="right" style="color:var(--red);font-size:11px">$' + fmtPrice(lv.stop) + '<br><span style="font-size:9px;opacity:.7">-' + lv.stopPct.toFixed(1) + '%</span></td>'
+      + '<td class="right" style="color:var(--green);font-size:11px">$' + fmtPrice(lv.target) + '<br><span style="font-size:9px;opacity:.7">+' + lv.targetPct.toFixed(1) + '%</span></td>'
+      + '<td class="right"><span class="score-pill tier-' + scoreTier(calcActivityScore(it)) + '">' + calcActivityScore(it) + '</span></td>'
+      + '</tr>';
+  }).join('');
+
+  const header = '<div style="padding:11px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11.5px;line-height:1.6">'
+    + '<strong style="color:var(--blue)">Briefing generado ' + new Date().toLocaleString('es-MX') + '</strong> · Estado: ' + status.label + '<br>'
+    + '<span style="color:var(--text-dim)">Los niveles Stop/Target son <strong>sugerencias mecánicas</strong> (stop = 60% de volatilidad diaria estimada, target = 2x el stop para R:B 2:1). Ajústalos según soportes/resistencias reales del chart. NO son recomendaciones de compra.</span>'
+    + '</div>';
+
+  document.getElementById('body-briefing').innerHTML = header
+    + '<div class="table-wrap"><table><thead><tr>'
+    + '<th>#</th><th></th><th>Ticker</th><th>Nombre</th><th class="right">Precio</th>'
+    + '<th class="right">Día</th><th class="right">PM/AH</th><th class="right">RVOL</th>'
+    + '<th class="right">Stop sug.</th><th class="right">Target sug.</th><th class="right">Score</th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+
+  // Send to Telegram
+  if (sendTelegram) {
+    if (!notifCfg.telegramToken || !notifCfg.telegramChat) {
+      alert('❌ Telegram no configurado.\n\nVe a ⚙ Configuración → sección "📱 Telegram Bot" y pega tu token + chat ID.\n\nGuía rápida:\n1. En Telegram busca @BotFather → /newbot → te da TOKEN\n2. Busca @userinfobot → te da CHAT ID\n3. Mándale un mensaje a tu bot primero\n4. Pega ambos en Configuración');
+      return;
+    }
+    let msg = '📋 BRIEFING PRE-MARKET\n';
+    msg += new Date().toLocaleString('es-MX') + '\n';
+    msg += status.label + '\n';
+    msg += '━━━━━━━━━━━━━━━━━━━━\n';
+    msg += '⏰ Apertura US: ' + sched.usOpen + ' CDMX\n';
+    msg += '⏰ Apertura BMV: ' + sched.bmvOpen + ' CDMX\n';
+    msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
+    list.forEach((it, i) => {
+      const lv = suggestLevels(it);
+      const flag = it.market === 'bmv' ? '🇲🇽' : it.market === 'crypto' ? '🪙' : '🇺🇸';
+      const pmVal = it.preMarketPct != null ? it.preMarketPct : it.postMarketPct;
+      msg += (i+1) + '. ' + flag + ' ' + it.symbol + '  $' + fmtPrice(it.price) + '\n';
+      msg += '   Día: ' + fmtPct(it.changePct);
+      if (pmVal != null) msg += ' | PM: ' + fmtPct(pmVal);
+      if (it.rvol) msg += ' | RVOL ' + fmtRvol(it.rvol);
+      msg += '\n';
+      msg += '   🛑 Stop: $' + fmtPrice(lv.stop) + ' (-' + lv.stopPct.toFixed(1) + '%)';
+      msg += '  🎯 Target: $' + fmtPrice(lv.target) + ' (+' + lv.targetPct.toFixed(1) + '%)\n';
+      msg += '   Score: ' + calcActivityScore(it) + '/100\n\n';
+    });
+    msg += '━━━━━━━━━━━━━━━━━━━━\n';
+    msg += '⚠️ Info objetiva, NO recomendación de compra.\n';
+    msg += 'Verifica catalizador y volumen antes de operar.\n';
+    msg += 'Stop/Target son sugerencias mecánicas (R:B 2:1).';
+
+    // Telegram has 4096 char limit - split if needed
+    const chunks = [];
+    let cur = '';
+    msg.split('\n').forEach(line => {
+      if ((cur + line + '\n').length > 3900) { chunks.push(cur); cur = ''; }
+      cur += line + '\n';
+    });
+    if (cur) chunks.push(cur);
+
+    (async () => {
+      for (let i = 0; i < chunks.length; i++) {
+        await Notifs.sendTelegram(chunks[i] + (chunks.length > 1 ? '\n[parte ' + (i+1) + '/' + chunks.length + ']' : ''), {});
+        await new Promise(r => setTimeout(r, 400));
+      }
+      alert('✅ Briefing enviado a Telegram (' + list.length + ' tickers' + (chunks.length > 1 ? ', ' + chunks.length + ' mensajes' : '') + ')');
+    })();
+  }
+};
+
+// Header briefing button
+document.getElementById('btn-briefing').addEventListener('click', () => {
+  // Switch to setups tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const tab = document.querySelector('.tab[data-tab="setups"]');
+  if (tab) tab.classList.add('active');
+  const panel = document.querySelector('[data-panel="setups"]');
+  if (panel) panel.classList.add('active');
+  currentTab = 'setups';
+  setTimeout(() => {
+    renderSetupTemplates(); renderSetupMatches();
+    generateBriefing(false);
+  }, 80);
+});
+
+renderScheduleBar();
+setInterval(renderScheduleBar, 60000);
+
+
+
+// ===================== NEWS CACHE FOR BRIEFING =====================
+const newsCache = {}; // symbol -> { news: [...], fetchedAt: timestamp }
+const NEWS_CACHE_TTL = 10 * 60 * 1000; // 10 min
+
+async function fetchNewsForTicker(symbol) {
+  const cached = newsCache[symbol];
+  if (cached && (Date.now() - cached.fetchedAt) < NEWS_CACHE_TTL) return cached.news;
+  try {
+    const url = 'https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(symbol) + '&newsCount=3&quotesCount=0';
+    const d = await fetchWithProxy(url, { timeout: 7000 });
+    const news = ((d && d.news) || []).map(n => ({
+      title: n.title, publisher: n.publisher, link: n.link,
+      publishedAt: (n.providerPublishTime || 0) * 1000
+    })).filter(n => n.title && n.link);
+    // Sort newest first, keep recent ones (last 3 days prioritized)
+    news.sort((a,b) => b.publishedAt - a.publishedAt);
+    newsCache[symbol] = { news: news, fetchedAt: Date.now() };
+    return news;
+  } catch(e) {
+    newsCache[symbol] = { news: [], fetchedAt: Date.now() };
+    return [];
+  }
+}
+
+async function fetchNewsForList(items, maxConcurrent) {
+  maxConcurrent = maxConcurrent || 5;
+  const result = {};
+  // Only fetch for US/ETF tickers (Yahoo search works best); BMV/crypto often no news
+  const targets = items.filter(it => it.market === 'us' || it.market === 'bmv');
+  for (let i = 0; i < targets.length; i += maxConcurrent) {
+    const batch = targets.slice(i, i + maxConcurrent);
+    await Promise.all(batch.map(async it => {
+      const sym = it.market === 'bmv' ? it.symbol.replace('.MX','') : it.symbol;
+      result[it.symbol] = await fetchNewsForTicker(sym);
+    }));
+  }
+  return result;
+}
+
+function newsAgeLabel(ts) {
+  if (!ts) return '';
+  const h = (Date.now() - ts) / 3600000;
+  if (h < 1) return Math.round(h*60) + 'm';
+  if (h < 24) return Math.round(h) + 'h';
+  return Math.round(h/24) + 'd';
+}
+function isRecentNews(ts) {
+  return ts && (Date.now() - ts) < (48 * 3600000); // last 48h
+}
+
+// ===================== BRIEFING WITH NEWS (override) =====================
+window.generateBriefing = async function(sendTelegram) {
+  const count = parseInt(document.getElementById('brief-count').value) || 20;
+  const list = buildBriefingList(count);
+  const status = getMarketStatus();
+  const sched = getScheduleInfo();
+  const cont = document.getElementById('body-briefing');
+
+  if (!list.length) {
+    cont.innerHTML = '<div class="empty-journal"><span class="big">⚠️</span>Sin datos cargados. Si las fuentes muestran ✗ arriba, conecta Finnhub en ⚙ Configuración.</div>';
+    return;
+  }
+
+  cont.innerHTML = '<div class="loading"><span class="spinner"></span>Generando briefing y buscando noticias de ' + list.length + ' tickers…</div>';
+
+  // Fetch news in parallel batches
+  const newsMap = await fetchNewsForList(list, 5);
+
+  const rows = list.map((it, i) => {
+    const lv = suggestLevels(it);
+    const isUp = it.changePct >= 0;
+    const pmVal = it.preMarketPct != null ? it.preMarketPct : (it.postMarketPct != null ? it.postMarketPct : null);
+    const pmLabel = it.preMarketPct != null ? 'PM' : (it.postMarketPct != null ? 'AH' : '');
+    const mktBadge = it.market === 'bmv' ? '🇲🇽' : it.market === 'crypto' ? '🪙' : '🇺🇸';
+    const news = newsMap[it.symbol] || [];
+    const recent = news.filter(n => isRecentNews(n.publishedAt));
+    let newsCell;
+    if (recent.length) {
+      const top = recent[0];
+      const safeTitle = (top.title || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      newsCell = '<div style="max-width:260px">'
+        + '<a href="' + top.link + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;line-height:1.35;display:block;color:var(--blue)" title="' + safeTitle + '">'
+        + '📰 ' + (top.title.length > 70 ? top.title.slice(0,70) + '…' : top.title) + '</a>'
+        + '<span style="font-size:9.5px;color:var(--text-faint)">' + (top.publisher||'') + ' · hace ' + newsAgeLabel(top.publishedAt) + (recent.length > 1 ? ' · +' + (recent.length-1) + ' más' : '') + '</span>'
+        + '</div>';
+    } else if (news.length) {
+      newsCell = '<span style="font-size:10.5px;color:var(--text-faint)">sin noticias recientes (48h)</span>';
+    } else {
+      newsCell = '<span style="font-size:10.5px;color:var(--text-faint)">–</span>';
+    }
+    const catalystBadge = recent.length ? '<span style="background:var(--green);color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:4px">CATALIZADOR</span>' : '';
+    return '<tr class="row-click" onclick="showChart(\'' + (it.fullSymbol||it.symbol) + '\',\'' + it.market + '\',\'' + (it.fullSymbol||it.symbol) + '\')">'
+      + '<td style="color:var(--text-faint);font-size:11px">' + (i+1) + '</td>'
+      + '<td>' + mktBadge + '</td>'
+      + '<td class="symbol symbol-clickable">' + it.symbol + catalystBadge + '</td>'
+      + '<td class="right" style="font-weight:600">$' + fmtPrice(it.price) + '</td>'
+      + '<td class="right"><span class="change ' + (isUp?'up':'down') + '">' + fmtPct(it.changePct) + '</span></td>'
+      + '<td class="right">' + (pmVal != null ? '<span class="change ' + (pmVal>=0?'up':'down') + '" style="font-size:10px">' + fmtPct(pmVal) + ' ' + pmLabel + '</span>' : '–') + '</td>'
+      + '<td class="right">' + (it.rvol ? '<span class="rvol ' + rvolClass(it.rvol) + '">' + fmtRvol(it.rvol) + '</span>' : '–') + '</td>'
+      + '<td class="right" style="color:var(--red);font-size:11px">$' + fmtPrice(lv.stop) + '<br><span style="font-size:9px;opacity:.7">-' + lv.stopPct.toFixed(1) + '%</span></td>'
+      + '<td class="right" style="color:var(--green);font-size:11px">$' + fmtPrice(lv.target) + '<br><span style="font-size:9px;opacity:.7">+' + lv.targetPct.toFixed(1) + '%</span></td>'
+      + '<td>' + newsCell + '</td>'
+      + '<td class="right"><span class="score-pill tier-' + scoreTier(calcActivityScore(it)) + '">' + calcActivityScore(it) + '</span></td>'
+      + '</tr>';
+  }).join('');
+
+  const withNews = list.filter(it => (newsMap[it.symbol]||[]).some(n => isRecentNews(n.publishedAt))).length;
+
+  const header = '<div style="padding:11px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11.5px;line-height:1.6">'
+    + '<strong style="color:var(--blue)">Briefing ' + new Date().toLocaleString('es-MX') + '</strong> · ' + status.label
+    + ' · <strong style="color:var(--green)">' + withNews + '/' + list.length + ' con catalizador de noticias (48h)</strong><br>'
+    + '<span style="color:var(--text-dim)">Stop/Target son <strong>sugerencias mecánicas</strong> (R:B 2:1 sobre volatilidad estimada). Ajusta según soportes reales. NO son recomendaciones de compra. Los que tienen badge CATALIZADOR tienen noticia reciente — revísala antes de operar.</span>'
+    + '</div>';
+
+  cont.innerHTML = header
+    + '<div class="table-wrap"><table><thead><tr>'
+    + '<th>#</th><th></th><th>Ticker</th><th class="right">Precio</th>'
+    + '<th class="right">Día</th><th class="right">PM/AH</th><th class="right">RVOL</th>'
+    + '<th class="right">Stop sug.</th><th class="right">Target sug.</th><th>Catalizador / Noticia</th><th class="right">Score</th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+
+  if (sendTelegram) {
+    if (!notifCfg.telegramToken || !notifCfg.telegramChat) {
+      alert('❌ Telegram no configurado.\n\n⚙ Configuración → "📱 Telegram Bot"\n\n1. @BotFather → /newbot → TOKEN\n2. @userinfobot → CHAT ID\n3. Mándale un mensaje a tu bot primero\n4. Pega ambos y guarda');
+      return;
+    }
+    let msg = '📋 BRIEFING PRE-MARKET\n';
+    msg += new Date().toLocaleString('es-MX') + '\n' + status.label + '\n';
+    msg += '⏰ Apertura US ' + sched.usOpen + ' | BMV ' + sched.bmvOpen + ' (CDMX)\n';
+    msg += '📰 ' + withNews + '/' + list.length + ' con catalizador\n';
+    msg += '━━━━━━━━━━━━━━━━━━\n\n';
+    list.forEach((it, i) => {
+      const lv = suggestLevels(it);
+      const flag = it.market === 'bmv' ? '🇲🇽' : it.market === 'crypto' ? '🪙' : '🇺🇸';
+      const pmVal = it.preMarketPct != null ? it.preMarketPct : it.postMarketPct;
+      const news = (newsMap[it.symbol]||[]).filter(n => isRecentNews(n.publishedAt));
+      msg += (i+1) + '. ' + flag + ' ' + it.symbol + '  $' + fmtPrice(it.price);
+      if (news.length) msg += '  🔥';
+      msg += '\n';
+      msg += '   ' + fmtPct(it.changePct);
+      if (pmVal != null) msg += ' | PM ' + fmtPct(pmVal);
+      if (it.rvol) msg += ' | RVOL ' + fmtRvol(it.rvol);
+      msg += ' | Score ' + calcActivityScore(it) + '\n';
+      msg += '   🛑 $' + fmtPrice(lv.stop) + ' (-' + lv.stopPct.toFixed(1) + '%)  🎯 $' + fmtPrice(lv.target) + ' (+' + lv.targetPct.toFixed(1) + '%)\n';
+      if (news.length) {
+        const n = news[0];
+        const t = n.title.length > 90 ? n.title.slice(0,90) + '…' : n.title;
+        msg += '   📰 ' + t + '\n';
+        msg += '   ' + n.link + '\n';
+        if (news.length > 1) msg += '   (+' + (news.length-1) + ' noticias más)\n';
+      } else {
+        msg += '   ⚠️ sin catalizador reciente\n';
+      }
+      msg += '\n';
+    });
+    msg += '━━━━━━━━━━━━━━━━━━\n⚠️ Info objetiva, NO recomendación.\nSin catalizador + volumen, mejor no operar.';
+
+    const chunks = [];
+    let cur = '';
+    msg.split('\n').forEach(line => {
+      if ((cur + line + '\n').length > 3800) { chunks.push(cur); cur = ''; }
+      cur += line + '\n';
+    });
+    if (cur) chunks.push(cur);
+    for (let i = 0; i < chunks.length; i++) {
+      await Notifs.sendTelegram(chunks[i] + (chunks.length > 1 ? '\n[' + (i+1) + '/' + chunks.length + ']' : ''), {});
+      await new Promise(r => setTimeout(r, 400));
+    }
+    alert('✅ Briefing enviado a Telegram\n' + list.length + ' tickers · ' + withNews + ' con noticia' + (chunks.length>1 ? '\n' + chunks.length + ' mensajes' : ''));
+  }
+};
+
+// ===================== PROXIMITY ALERTS (bitácora) =====================
+// Extend Journal.open to store proximity setting
+const _origJournalOpen = Journal.open.bind(Journal);
+Journal.open = function(d) {
+  const t = _origJournalOpen(d);
+  t.proximityPct = d.proximityPct || 25;
+  this.save();
+  return t;
+};
+
+// Extend trackPrice to detect proximity
+const _origTrackPrice2 = Journal.trackPrice.bind(Journal);
+Journal.trackPrice = function(id, price) {
+  const alerts = _origTrackPrice2(id, price) || [];
+  const t = this.trades.find(x => x.id === id);
+  if (!t || t.status !== 'open') return alerts;
+  const prox = (t.proximityPct != null ? t.proximityPct : 25) / 100;
+
+  // Near take-profit: price has traveled (1-prox) of the way from entry to TP
+  if (t.takeProfit && t.takeProfit > t.entryPrice && !alerts.includes('tp')) {
+    const dist = t.takeProfit - t.entryPrice;
+    const traveled = price - t.entryPrice;
+    if (traveled > 0 && traveled >= dist * (1 - prox)) {
+      if (!alerts.includes('near_tp')) alerts.push('near_tp');
+    }
+  }
+  // Near stop-loss
+  if (t.stopLoss && t.stopLoss < t.entryPrice && !alerts.includes('sl')) {
+    const dist = t.entryPrice - t.stopLoss;
+    const traveled = t.entryPrice - price;
+    if (traveled > 0 && traveled >= dist * (1 - prox)) {
+      if (!alerts.includes('near_sl')) alerts.push('near_sl');
+    }
+  }
+  // Near trailing stop
+  if (t.trailingStopPct && !alerts.includes('trail')) {
+    const trailPrice = t.highestPrice * (1 - t.trailingStopPct / 100);
+    const dist = t.highestPrice - trailPrice;
+    if (dist > 0) {
+      const fromTrail = price - trailPrice;
+      if (fromTrail > 0 && fromTrail <= dist * prox) {
+        if (!alerts.includes('near_trail')) alerts.push('near_trail');
+      }
+    }
+  }
+  return alerts;
+};
+
+// Notify on proximity
+const _origTrackPrice3 = Journal.trackPrice.bind(Journal);
+Journal.trackPrice = function(id, price) {
+  const alerts = _origTrackPrice3(id, price) || [];
+  if (!alerts.length) return alerts;
+  if (typeof notifCfg === 'undefined' || !notifCfg.enabled || !notifCfg.positions) return alerts;
+  const t = this.trades.find(x => x.id === id);
+  if (!t) return alerts;
+  const proxAlerts = alerts.filter(a => a.startsWith('near_'));
+  proxAlerts.forEach(a => {
+    const k = 'prox_' + id + '_' + a;
+    if (Notifs.lastSent[k]) return;
+    Notifs.lastSent[k] = Date.now();
+    const cfgMap = {
+      near_tp:    { e:'🔔', t:'CERCA DEL TAKE-PROFIT', s:'success', lvl: t.takeProfit },
+      near_sl:    { e:'⚠️', t:'CERCA DEL STOP-LOSS',  s:'warning', lvl: t.stopLoss },
+      near_trail: { e:'⚠️', t:'CERCA DEL TRAILING STOP', s:'warning', lvl: t.highestPrice * (1 - (t.trailingStopPct||0)/100) }
+    };
+    const c = cfgMap[a];
+    if (!c) return;
+    const distPct = Math.abs((c.lvl - price) / price * 100);
+    const pnl = (price - t.entryPrice) * t.qty - estimateCost(t.entryPrice, t.qty) - estimateCost(price, t.qty);
+    Notifs.send(c.e + ' ' + c.t + ' · ' + t.ticker,
+      'Precio $' + fmtPrice(price) + ' · nivel $' + fmtPrice(c.lvl) + ' (falta ' + distPct.toFixed(2) + '%)'
+      + ' · P&L actual: ' + (pnl>=0?'+':'') + '$' + pnl.toFixed(2),
+      { ticker: t.ticker, eventType: a, soundType: c.s, important: a === 'near_sl' });
+  });
+  return alerts;
+};
+
+// Extend openTrade to read proximity field
+const _origOpenTrade = window.openTrade;
+window.openTrade = function() {
+  const proxEl = document.getElementById('tt-proximity');
+  const prox = proxEl ? (parseFloat(proxEl.value) || 25) : 25;
+  // temporarily patch: call original but inject proximity into last trade
+  _origOpenTrade();
+  const last = Journal.trades[Journal.trades.length - 1];
+  if (last && last.status === 'open') {
+    last.proximityPct = prox;
+    Journal.save();
+  }
+};
+
+// Extend clearTradeForm to reset proximity
+const _origClearForm = window.clearTradeForm;
+window.clearTradeForm = function() {
+  _origClearForm();
+  const p = document.getElementById('tt-proximity');
+  if (p) p.value = 25;
+};
+
+// Add near_* badges to the open positions render
+const _origRenderJournal = renderJournal;
+renderJournal = function() {
+  _origRenderJournal();
+  // Add proximity badges post-render
+  const open = Journal.trades.filter(t => t.status === 'open');
+  open.forEach(t => {
+    const cur = findCurrentPrice(t.ticker, t.market);
+    if (!cur) return;
+    const alerts = Journal.trackPrice(t.id, cur.price) || [];
+    if (!alerts.some(a => a.startsWith('near_'))) return;
+    // find the row and append badge
+    const rows = document.querySelectorAll('#body-open-pos tbody tr');
+    rows.forEach(row => {
+      const sym = row.querySelector('td.symbol');
+      if (!sym || !sym.textContent.includes(t.ticker)) return;
+      if (sym.querySelector('.prox-badge')) return;
+      alerts.filter(a => a.startsWith('near_')).forEach(a => {
+        const lbl = a === 'near_tp' ? '🔔 cerca TP' : a === 'near_sl' ? '⚠ cerca SL' : '⚠ cerca trail';
+        const color = a === 'near_tp' ? 'var(--green)' : 'var(--yellow)';
+        const badge = document.createElement('span');
+        badge.className = 'alert-badge prox-badge';
+        badge.style.cssText = 'background:' + color + ';color:' + (a==='near_tp'?'#fff':'var(--bg)') + ';margin-left:4px';
+        badge.textContent = lbl;
+        sym.appendChild(badge);
+      });
+      row.style.boxShadow = 'inset 3px 0 0 ' + (alerts.includes('near_tp') ? 'var(--green)' : 'var(--yellow)');
+    });
+  });
+};
+
+
+
+// ===================== BRIEFING SEGMENTADO POR MERCADO =====================
+function buildBriefingSegment(marketFilter, count) {
+  if (!count || count <= 0) return [];
+  const status = getMarketStatus();
+  const items = lastAllItems.filter(it => {
+    if (it.price == null || it.changePct == null) return false;
+    if (marketFilter === 'us') return it.market === 'us';
+    if (marketFilter === 'bmv') return it.market === 'bmv';
+    if (marketFilter === 'crypto') return it.market === 'crypto';
+    return false;
+  });
+  const scored = items.map(it => {
+    let score = calcActivityScore(it);
+    if (status.state === 'premkt' && it.preMarketPct != null) score += Math.abs(it.preMarketPct) * 2;
+    if (status.state === 'aftermkt' && it.postMarketPct != null) score += Math.abs(it.postMarketPct) * 2;
+    return Object.assign({}, it, { _briefScore: score });
+  });
+  scored.sort((a,b) => b._briefScore - a._briefScore);
+  return scored.slice(0, count);
+}
+
+function briefRowsHTML(list, newsMap, startIdx) {
+  return list.map((it, i) => {
+    const lv = suggestLevels(it);
+    const isUp = it.changePct >= 0;
+    const pmVal = it.preMarketPct != null ? it.preMarketPct : (it.postMarketPct != null ? it.postMarketPct : null);
+    const pmLabel = it.preMarketPct != null ? 'PM' : (it.postMarketPct != null ? 'AH' : '');
+    const news = (newsMap[it.symbol] || []).filter(n => isRecentNews(n.publishedAt));
+    let newsCell;
+    if (news.length) {
+      const top = news[0];
+      const safeTitle = (top.title || '').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      newsCell = '<div style="max-width:250px"><a href="' + top.link + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:10.5px;line-height:1.3;display:block;color:var(--blue)" title="' + safeTitle + '">📰 '
+        + (top.title.length > 62 ? top.title.slice(0,62) + '…' : top.title) + '</a>'
+        + '<span style="font-size:9px;color:var(--text-faint)">' + (top.publisher||'') + ' · ' + newsAgeLabel(top.publishedAt) + (news.length>1 ? ' · +' + (news.length-1) : '') + '</span></div>';
+    } else {
+      newsCell = '<span style="font-size:10px;color:var(--text-faint)">sin noticia 48h</span>';
+    }
+    const badge = news.length ? '<span style="background:var(--green);color:#fff;font-size:8.5px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:3px">CAT</span>' : '';
+    return '<tr class="row-click" onclick="showChart(\'' + (it.fullSymbol||it.symbol) + '\',\'' + it.market + '\',\'' + (it.fullSymbol||it.symbol) + '\')">'
+      + '<td style="color:var(--text-faint);font-size:10.5px">' + (startIdx+i+1) + '</td>'
+      + '<td class="symbol symbol-clickable">' + it.symbol.replace('.MX','') + badge + '</td>'
+      + '<td class="name">' + (it.name || '–') + '</td>'
+      + '<td class="right" style="font-weight:600">$' + fmtPrice(it.price) + '</td>'
+      + '<td class="right"><span class="change ' + (isUp?'up':'down') + '">' + fmtPct(it.changePct) + '</span></td>'
+      + '<td class="right">' + (pmVal != null ? '<span class="change ' + (pmVal>=0?'up':'down') + '" style="font-size:10px">' + fmtPct(pmVal) + ' ' + pmLabel + '</span>' : '–') + '</td>'
+      + '<td class="right">' + (it.rvol ? '<span class="rvol ' + rvolClass(it.rvol) + '">' + fmtRvol(it.rvol) + '</span>' : '–') + '</td>'
+      + '<td class="right" style="color:var(--red);font-size:10.5px">$' + fmtPrice(lv.stop) + '<br><span style="font-size:8.5px;opacity:.7">-' + lv.stopPct.toFixed(1) + '%</span></td>'
+      + '<td class="right" style="color:var(--green);font-size:10.5px">$' + fmtPrice(lv.target) + '<br><span style="font-size:8.5px;opacity:.7">+' + lv.targetPct.toFixed(1) + '%</span></td>'
+      + '<td>' + newsCell + '</td>'
+      + '<td class="right"><span class="score-pill tier-' + scoreTier(calcActivityScore(it)) + '">' + calcActivityScore(it) + '</span></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function briefTableHTML(title, color, list, newsMap) {
+  if (!list.length) {
+    return '<div style="padding:10px 14px;background:var(--bg-card-2);border-top:1px solid var(--border);font-weight:600;font-size:12.5px;color:' + color + '">' + title + '</div>'
+      + '<div class="empty-state" style="padding:16px">Sin datos para este mercado. Verifica el diagnóstico de fuentes arriba.</div>';
+  }
+  const withNews = list.filter(it => (newsMap[it.symbol]||[]).some(n => isRecentNews(n.publishedAt))).length;
+  return '<div style="padding:10px 14px;background:var(--bg-card-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+    + '<span style="font-weight:700;font-size:13px;color:' + color + '">' + title + '</span>'
+    + '<span style="font-size:11px;color:var(--text-dim)">' + list.length + ' tickers · <strong style="color:var(--green)">' + withNews + ' con catalizador</strong></span>'
+    + '</div>'
+    + '<div class="table-wrap"><table><thead><tr>'
+    + '<th>#</th><th>Ticker</th><th>Nombre</th><th class="right">Precio</th><th class="right">Día</th>'
+    + '<th class="right">PM/AH</th><th class="right">RVOL</th><th class="right">Stop sug.</th>'
+    + '<th class="right">Target sug.</th><th>Catalizador</th><th class="right">Score</th>'
+    + '</tr></thead><tbody>' + briefRowsHTML(list, newsMap, 0) + '</tbody></table></div>';
+}
+
+function briefTelegramSection(flag, title, list, newsMap) {
+  if (!list.length) return '';
+  let msg = '\n' + flag + ' ' + title + '\n━━━━━━━━━━━━━━━━\n';
+  list.forEach((it, i) => {
+    const lv = suggestLevels(it);
+    const pmVal = it.preMarketPct != null ? it.preMarketPct : it.postMarketPct;
+    const news = (newsMap[it.symbol]||[]).filter(n => isRecentNews(n.publishedAt));
+    msg += (i+1) + '. ' + it.symbol.replace('.MX','') + '  $' + fmtPrice(it.price) + (news.length ? '  🔥' : '') + '\n';
+    msg += '   ' + fmtPct(it.changePct);
+    if (pmVal != null) msg += ' | PM ' + fmtPct(pmVal);
+    if (it.rvol) msg += ' | RVOL ' + fmtRvol(it.rvol);
+    msg += ' | Sc ' + calcActivityScore(it) + '\n';
+    msg += '   🛑 $' + fmtPrice(lv.stop) + '  🎯 $' + fmtPrice(lv.target) + '\n';
+    if (news.length) {
+      const n = news[0];
+      msg += '   📰 ' + (n.title.length > 80 ? n.title.slice(0,80) + '…' : n.title) + '\n';
+      msg += '   ' + n.link + '\n';
+    } else {
+      msg += '   ⚠️ sin catalizador\n';
+    }
+    msg += '\n';
+  });
+  return msg;
+}
+
+window.generateBriefing = async function(sendTelegram) {
+  const nUS = parseInt(document.getElementById('brief-count-us').value);
+  const nBMV = parseInt(document.getElementById('brief-count-bmv').value);
+  const nCry = parseInt(document.getElementById('brief-count-crypto').value);
+  const cUS = isNaN(nUS) ? 20 : nUS;
+  const cBMV = isNaN(nBMV) ? 20 : nBMV;
+  const cCry = isNaN(nCry) ? 10 : nCry;
+
+  const status = getMarketStatus();
+  const sched = getScheduleInfo();
+  const cont = document.getElementById('body-briefing');
+
+  const listUS = buildBriefingSegment('us', cUS);
+  const listBMV = buildBriefingSegment('bmv', cBMV);
+  const listCry = buildBriefingSegment('crypto', cCry);
+  const total = listUS.length + listBMV.length + listCry.length;
+
+  if (!total) {
+    cont.innerHTML = '<div class="empty-journal"><span class="big">⚠️</span>Sin datos cargados. Si las fuentes muestran ✗ arriba, conecta Finnhub en ⚙ Configuración.</div>';
+    return;
+  }
+
+  cont.innerHTML = '<div class="loading"><span class="spinner"></span>Generando briefing (' + listUS.length + ' US · ' + listBMV.length + ' BMV · ' + listCry.length + ' crypto) y buscando noticias…</div>';
+
+  const newsMap = await fetchNewsForList([...listUS, ...listBMV], 5);
+
+  const header = '<div style="padding:11px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11.5px;line-height:1.6">'
+    + '<strong style="color:var(--blue)">Briefing ' + new Date().toLocaleString('es-MX') + '</strong> · ' + status.label + '<br>'
+    + '<span style="color:var(--text-dim)">⏰ Apertura US <strong style="color:var(--text)">' + sched.usOpen + '</strong> · BMV <strong style="color:var(--text)">' + sched.bmvOpen + '</strong> (CDMX) &nbsp;|&nbsp; '
+    + 'Stop/Target = sugerencias mecánicas R:B 2:1. Badge <strong style="color:var(--green)">CAT</strong> = tiene catalizador de noticias (48h). NO son recomendaciones de compra.</span></div>';
+
+  cont.innerHTML = header
+    + briefTableHTML('🇺🇸 NUEVA YORK (NYSE / NASDAQ)', 'var(--blue)', listUS, newsMap)
+    + briefTableHTML('🇲🇽 BOLSA MEXICANA (BMV)', 'var(--green)', listBMV, newsMap)
+    + (cCry > 0 ? briefTableHTML('🪙 CRIPTOMONEDAS', 'var(--yellow)', listCry, newsMap) : '');
+
+  if (sendTelegram) {
+    if (!notifCfg.telegramToken || !notifCfg.telegramChat) {
+      alert('❌ Telegram no configurado.\n\n⚙ Configuración → "📱 Telegram Bot"\n\n1. @BotFather → /newbot → TOKEN\n2. @userinfobot → CHAT ID\n3. Mándale un mensaje a tu bot primero\n4. Pega ambos y guarda');
+      return;
+    }
+    const withNewsTotal = [...listUS, ...listBMV].filter(it => (newsMap[it.symbol]||[]).some(n => isRecentNews(n.publishedAt))).length;
+    let msg = '📋 BRIEFING PRE-MARKET\n' + new Date().toLocaleString('es-MX') + '\n' + status.label + '\n';
+    msg += '⏰ US ' + sched.usOpen + ' | BMV ' + sched.bmvOpen + ' (CDMX)\n';
+    msg += '📰 ' + withNewsTotal + '/' + (listUS.length + listBMV.length) + ' con catalizador\n';
+    msg += briefTelegramSection('🇺🇸', 'NUEVA YORK (' + listUS.length + ')', listUS, newsMap);
+    msg += briefTelegramSection('🇲🇽', 'BOLSA MEXICANA (' + listBMV.length + ')', listBMV, newsMap);
+    msg += briefTelegramSection('🪙', 'CRIPTO (' + listCry.length + ')', listCry, newsMap);
+    msg += '━━━━━━━━━━━━━━━━\n⚠️ Info objetiva, NO recomendación.\nSin catalizador + volumen, mejor no operar.';
+
+    const chunks = [];
+    let cur = '';
+    msg.split('\n').forEach(line => {
+      if ((cur + line + '\n').length > 3800) { chunks.push(cur); cur = ''; }
+      cur += line + '\n';
+    });
+    if (cur) chunks.push(cur);
+    for (let i = 0; i < chunks.length; i++) {
+      await Notifs.sendTelegram(chunks[i] + (chunks.length > 1 ? '\n[' + (i+1) + '/' + chunks.length + ']' : ''), {});
+      await new Promise(r => setTimeout(r, 450));
+    }
+    alert('✅ Briefing enviado a Telegram\n🇺🇸 ' + listUS.length + ' US · 🇲🇽 ' + listBMV.length + ' BMV · 🪙 ' + listCry.length + ' crypto\n📰 ' + withNewsTotal + ' con noticia\n' + chunks.length + ' mensaje(s)');
+  }
+};
+
 
 applyChartLayout();
     if (currentTVSymbol) showChart(currentTVSymbol.split(':').pop(), 'us', currentTVSymbol.split(':').pop());
@@ -2408,6 +3418,101 @@ readFilters();
 updateMarketStatus();
 setDiagMode();
 updateAll().then(() => { if (autoRefreshOn) startAutoRefresh(); });
+
+
+// ===================== HANDLERS ROBUSTOS (al final, siempre corren) =====================
+(function wireRobustHandlers() {
+  // Boton TG dedicado
+  const tgBtn = $id('btn-tg-test');
+  if (tgBtn) {
+    tgBtn.addEventListener('click', async () => {
+      if (!notifCfg.telegramToken || !notifCfg.telegramChat) {
+        alert('Telegram no configurado.\n\nVe a Configuracion (engrane) -> seccion "Telegram Bot"\ny pega tu token + chat ID, luego Guardar.');
+        return;
+      }
+      tgBtn.textContent = '⏳ ...';
+      try {
+        await Notifs.sendTelegram('✅ PRUEBA MANUAL\n\nDay Trading Pro esta conectado.\n' + new Date().toLocaleString('es-MX') + '\n\nRecibiras aqui:\n- Alertas de movimientos\n- Pre-market gappers\n- Setup matches\n- Stop-loss / Take-profit\n- Briefings completos', {});
+        tgBtn.textContent = '✅ TG';
+        alert('Mensaje enviado a Telegram. Revisa tu celular.');
+      } catch(e) {
+        tgBtn.textContent = '❌ TG';
+        alert('Fallo el envio:\n\n' + e.message + '\n\nVerifica:\n1. Token correcto (sin espacios)\n2. Chat ID correcto (solo numeros)\n3. Le mandaste un mensaje al bot primero');
+      }
+      setTimeout(() => { tgBtn.textContent = '📱 TG'; }, 3000);
+    });
+  }
+
+  // Re-wire boton Test (por si el handler original se rompio)
+  const testBtn = $id('btn-notif-test');
+  if (testBtn) {
+    const clone = testBtn.cloneNode(true);
+    testBtn.parentNode.replaceChild(clone, testBtn);
+    clone.addEventListener('click', async () => {
+      const proto = window.location.protocol;
+      const hasAPI = (typeof Notification !== 'undefined');
+      const perm = hasAPI ? Notification.permission : 'no-soportado';
+      const isFile = proto === 'file:';
+
+      let diag = '=== DIAGNOSTICO DE NOTIFICACIONES ===\n\n';
+      diag += 'Protocolo: ' + proto + (isFile ? '  [!] file:// BLOQUEA notifs nativas' : '  [OK]') + '\n';
+      diag += 'API Notification: ' + (hasAPI ? '[OK] disponible' : '[!] no soportada') + '\n';
+      diag += 'Permiso: ' + perm + '\n';
+      diag += 'Notif activadas: ' + (notifCfg.enabled ? '[OK] si' : '[!] no (dale click a Notif)') + '\n';
+      diag += 'Sonido: ' + (notifCfg.sound ? '[OK] si' : 'no') + '\n';
+      diag += 'Telegram token: ' + (notifCfg.telegramToken ? '[OK] ' + notifCfg.telegramToken.slice(0,10) + '...' : '[!] vacio') + '\n';
+      diag += 'Telegram chat: ' + (notifCfg.telegramChat || '[!] vacio') + '\n';
+      diag += 'Finnhub key: ' + (config.finnhubKey ? '[OK] ' + config.finnhubKey.slice(0,8) + '...' : 'vacio (usa Yahoo)') + '\n';
+      diag += 'Errores JS capturados: ' + window.__dtErrors.length + '\n';
+      if (window.__dtErrors.length) diag += '  -> ' + window.__dtErrors.slice(0,3).join('\n  -> ') + '\n';
+      diag += 'Tickers cargados: ' + (typeof lastAllItems !== 'undefined' ? lastAllItems.length : '?') + '\n';
+
+      // Sonido
+      try { playAlertSound('success'); diag += '\nSonido: reproducido'; } catch(e) { diag += '\nSonido fallo: ' + e.message; }
+
+      // Notif nativa
+      let nativeOK = false;
+      if (hasAPI && perm === 'granted' && !isFile) {
+        try {
+          new Notification('Test - Day Trading Pro', { body: 'Si ves esto en la esquina de tu pantalla, funciona.', tag: 'test' });
+          nativeOK = true;
+          diag += '\nNotif nativa: enviada (revisa esquina de pantalla)';
+        } catch(e) { diag += '\nNotif nativa fallo: ' + e.message; }
+      } else {
+        diag += '\nNotif nativa: NO enviada (' + (isFile ? 'file:// bloqueado' : 'permiso ' + perm) + ')';
+      }
+
+      // Toast
+      try {
+        toastQueue.push({ symbol: 'TEST', changePct: 0, price: 0, name: 'Prueba de alerta visual' });
+        processToastQueue();
+        diag += '\nToast visual: mostrado';
+      } catch(e) { diag += '\nToast fallo: ' + e.message; }
+
+      // Telegram
+      if (notifCfg.telegramToken && notifCfg.telegramChat) {
+        try {
+          await Notifs.sendTelegram('🔔 TEST desde boton Test\n' + new Date().toLocaleString('es-MX'), {});
+          diag += '\nTelegram: ENVIADO [OK]';
+        } catch(e) { diag += '\nTelegram FALLO: ' + e.message; }
+      } else {
+        diag += '\nTelegram: no configurado';
+      }
+
+      diag += '\n\n--- QUE HACER ---\n';
+      if (isFile) diag += '* Estas en file://. Corre deploy.bat y usa\n  https://davidvemo.github.io/trading/day_trading_monitor.html\n  para notifs nativas de Windows.\n';
+      if (!notifCfg.enabled) diag += '* Dale click al boton "Notif" para activarlas.\n';
+      if (perm === 'denied') diag += '* Permiso bloqueado: en Chrome ve a Configuracion del sitio y permite notificaciones.\n';
+      if (notifCfg.telegramToken && notifCfg.telegramChat) diag += '* Telegram esta configurado: recibiras alertas al celular sin importar el protocolo.\n';
+
+      console.log(diag);
+      alert(diag);
+    });
+  }
+})();
+
+console.log('[DT] Init completo. Errores:', window.__dtErrors.length, '| Telegram:', !!(notifCfg && notifCfg.telegramToken), '| Finnhub:', !!(config && config.finnhubKey));
+
 </script>
 </body>
 </html>
