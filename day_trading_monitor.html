@@ -313,6 +313,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
   <button class="tab active" data-tab="all">📊 Todo</button>
   <button class="tab" data-tab="movers">🔥 Top Movers</button>
   <button class="tab" data-tab="fund">💎 Fundamental</button>
+  <button class="tab" data-tab="earnings">📅 Earnings Semana</button>
   <button class="tab" data-tab="setups">🎯 Setup Alerts</button>
   <button class="tab" data-tab="chart-full">📈 Gráfico Detalle</button>
   <button class="tab" data-tab="journal">📒 Bitácora Paper Trading</button>
@@ -371,7 +372,80 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
       </div>
     </div>
 
+    <div class="tab-panel" data-panel="earnings">
+      <div class="section" style="border-color:rgba(245,176,65,.4)">
+        <div class="section-header" style="background:linear-gradient(90deg,rgba(245,176,65,.15),rgba(234,57,67,.05))">
+          <h2 style="color:var(--yellow)">📅 Calendario de Resultados (Earnings)</h2>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <label style="font-size:11px;color:var(--text-dim)">Días:</label>
+            <input type="number" id="earn-days" value="7" min="1" max="30" style="width:48px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:11px">
+            <label style="font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px"><input type="checkbox" id="earn-only-watch" style="width:auto"> solo mi watchlist</label>
+            <button class="control" onclick="loadEarnings()">🔄 Cargar</button>
+            <button class="control" onclick="loadEarnings(true)" style="background:var(--purple);color:#fff;border:none">📱 A Telegram</button>
+          </div>
+        </div>
+        <div style="padding:9px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.5">
+          <strong style="color:var(--yellow)">⚠️ Earnings = el catalizador más potente y más peligroso.</strong> Las acciones pueden moverse 10-40% después del reporte. Muchos day traders <strong>evitan operar</strong> justo antes de earnings porque es una moneda al aire. Requiere Finnhub API key.
+        </div>
+        <div id="body-earnings"><div class="empty-journal"><span class="big">📅</span>Click "Cargar" para ver qué empresas reportan resultados esta semana.</div></div>
+      </div>
+    </div>
+
     <div class="tab-panel" data-panel="setups">
+      <div class="section" style="border-color:rgba(22,199,132,.4)">
+        <div class="section-header" style="background:linear-gradient(90deg,rgba(22,199,132,.15),rgba(79,140,255,.05))">
+          <h2 style="color:var(--green)">🤖 Envío Automático</h2>
+          <span class="meta" id="auto-status">cargando…</span>
+        </div>
+        <div style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:8px;cursor:pointer">
+              <input type="checkbox" id="auto-brief-on" checked style="width:auto"> <strong>Briefing antes de apertura</strong>
+            </label>
+            <div style="font-size:10.5px;color:var(--text-dim);margin-bottom:6px">Minutos antes de que abra cada mercado:</div>
+            <input type="number" id="auto-brief-offset" value="10" min="1" max="120" style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 9px;border-radius:5px;font-size:11.5px">
+            <div style="display:flex;gap:12px;margin-top:8px">
+              <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);cursor:pointer"><input type="checkbox" id="auto-brief-us" checked style="width:auto"> 🇺🇸 US</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);cursor:pointer"><input type="checkbox" id="auto-brief-bmv" checked style="width:auto"> 🇲🇽 BMV</label>
+            </div>
+            <div id="auto-brief-preview" style="font-size:10px;color:var(--yellow);margin-top:6px;line-height:1.5"></div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:3px">Se calcula automáticamente según el horario vigente. Solo días hábiles. Mensajes separados por mercado.</div>
+          </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:8px;cursor:pointer">
+              <input type="checkbox" id="auto-score-on" checked style="width:auto"> <strong>Alertas score alto + noticia</strong>
+            </label>
+            <div style="font-size:10.5px;color:var(--text-dim);margin-bottom:6px">Score mínimo para alertar:</div>
+            <input type="number" id="auto-score-min" value="60" min="20" max="100" step="5" style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 9px;border-radius:5px;font-size:11.5px">
+            <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-dim);margin-top:6px;cursor:pointer">
+              <input type="checkbox" id="auto-score-needs-news" checked style="width:auto"> exigir noticia reciente (48h)
+            </label>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:4px">Funciona independiente de Setup Alerts. Se dispara en cada actualización.</div>
+          </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:8px;cursor:pointer">
+              <input type="checkbox" id="auto-earn-on" style="width:auto"> <strong>Earnings semanal</strong>
+            </label>
+            <div style="font-size:10.5px;color:var(--text-dim);margin-bottom:6px">Día y hora de envío:</div>
+            <div style="display:flex;gap:6px">
+              <select id="auto-earn-day" style="flex:1;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:5px;font-size:11.5px">
+                <option value="1">Lunes</option><option value="0">Domingo</option>
+                <option value="2">Martes</option><option value="5">Viernes</option>
+              </select>
+              <input type="text" id="auto-earn-time" value="07:00" style="width:70px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:5px;font-family:monospace;font-size:11.5px">
+            </div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:4px">Lista de empresas que reportan en los próximos 7 días.</div>
+          </div>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap">
+          <span style="font-size:10.5px;color:var(--yellow)">⚠️ Esto requiere la pestaña ABIERTA. Para alertas sin navegador usa GitHub Actions (ver archivo GITHUB_ACTIONS_SETUP.md en tu carpeta).</span>
+          <div style="display:flex;gap:6px">
+            <button class="control" onclick="saveAutoConfig()" style="background:var(--green);color:#fff;border:none">💾 Guardar</button>
+            <button class="control" onclick="testAutoBriefing()">▶ Probar envío ahora</button>
+          </div>
+        </div>
+      </div>
+
       <div class="section" style="border-color:rgba(79,140,255,.4)">
         <div class="section-header" style="background:linear-gradient(90deg,rgba(79,140,255,.15),rgba(168,85,247,.05))">
           <h2 style="color:var(--blue)">📋 Briefing Pre-Market</h2>
@@ -2122,6 +2196,11 @@ const NotifConfig = {
 };
 let notifCfg = NotifConfig.load();
 window.notifCfg = notifCfg;   // exponer globalmente para evitar problemas de scope
+// Las alertas estan activas si el usuario prendio notifs O si Telegram esta configurado
+function notifsActive() {
+  return !!(notifCfg && (notifCfg.enabled || (notifCfg.telegramToken && notifCfg.telegramChat)));
+}
+window.notifsActive = notifsActive;
 
 const Notifs = {
   lastSent: {}, // key -> timestamp
@@ -2381,7 +2460,7 @@ console.log('[Notif Diag]',
 const _origShowAlert = showAlert;
 showAlert = function(item) {
   _origShowAlert(item);
-  if (!notifCfg.enabled || !notifCfg.movers) return;
+  if (!notifsActive() || !notifCfg.movers) return;
   const isUp = item.changePct >= 0;
   const emoji = isUp ? '📈' : '📉';
   const title = emoji + ' ' + item.symbol + ' ' + fmtPct(item.changePct);
@@ -2400,7 +2479,7 @@ const seenPremktGappers = new Set();
 const _origRenderPreMarket = renderPreMarket;
 renderPreMarket = function(items) {
   _origRenderPreMarket(items);
-  if (!notifCfg.enabled || !notifCfg.premarket) return;
+  if (!notifsActive() || !notifCfg.premarket) return;
   const status = getMarketStatus();
   if (status.state !== 'premkt' && status.state !== 'aftermkt') return;
   const newGappers = items.filter(it => {
@@ -2424,7 +2503,7 @@ const _origTrackPrice = Journal.trackPrice.bind(Journal);
 Journal.trackPrice = function(id, price) {
   const alerts = _origTrackPrice(id, price);
   if (!alerts || !alerts.length) return alerts;
-  if (!notifCfg.enabled || !notifCfg.positions) return alerts;
+  if (!notifsActive() || !notifCfg.positions) return alerts;
   const t = this.trades.find(x => x.id === id);
   if (!t) return alerts;
   alerts.forEach(a => {
@@ -3130,7 +3209,7 @@ const _origTrackPrice3 = Journal.trackPrice.bind(Journal);
 Journal.trackPrice = function(id, price) {
   const alerts = _origTrackPrice3(id, price) || [];
   if (!alerts.length) return alerts;
-  if (typeof notifCfg === 'undefined' || !notifCfg.enabled || !notifCfg.positions) return alerts;
+  if (typeof notifCfg === 'undefined' || !notifsActive() || !notifCfg.positions) return alerts;
   const t = this.trades.find(x => x.id === id);
   if (!t) return alerts;
   const proxAlerts = alerts.filter(a => a.startsWith('near_'));
@@ -3736,6 +3815,556 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
   } else {
     buildPanel();
   }
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   AUTO-ENVIO + EARNINGS (bloque independiente)
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var AK = 'dt_auto_cfg';
+  var SK = 'dt_auto_sent';   // registro de envios para no duplicar
+
+  function loadAuto() {
+    try {
+      var d = JSON.parse(localStorage.getItem(AK) || '{}');
+      return {
+        briefOn:      d.briefOn !== undefined ? d.briefOn : false,
+        briefTimes:   d.briefTimes || '06:30,07:15',
+        scoreOn:      d.scoreOn !== undefined ? d.scoreOn : false,
+        scoreMin:     d.scoreMin || 60,
+        scoreNeedsNews: d.scoreNeedsNews !== undefined ? d.scoreNeedsNews : true,
+        earnOn:       d.earnOn !== undefined ? d.earnOn : false,
+        earnDay:      d.earnDay !== undefined ? d.earnDay : 1,
+        earnTime:     d.earnTime || '07:00'
+      };
+    } catch (e) { return { briefOn:false, briefTimes:'06:30,07:15', scoreOn:false, scoreMin:60, scoreNeedsNews:true, earnOn:false, earnDay:1, earnTime:'07:00' }; }
+  }
+  function saveAuto(c) { localStorage.setItem(AK, JSON.stringify(c)); }
+  function loadSent() { try { return JSON.parse(localStorage.getItem(SK) || '{}'); } catch (e) { return {}; } }
+  function markSent(key) { var s = loadSent(); s[key] = Date.now(); localStorage.setItem(SK, JSON.stringify(s)); }
+  function wasSent(key) { return !!loadSent()[key]; }
+
+  var autoCfg = loadAuto();
+  window.dtAutoCfg = autoCfg;
+
+  function nowMX() { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' })); }
+  function hhmm(d) { return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+  function dayKey(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  function isWeekday(d) { var x = d.getDay(); return x >= 1 && x <= 5; }
+
+  // ---------- fill UI ----------
+  function fillAutoUI() {
+    var m = { 'auto-brief-on':'briefOn', 'auto-score-on':'scoreOn', 'auto-earn-on':'earnOn', 'auto-score-needs-news':'scoreNeedsNews' };
+    for (var id in m) { var el = document.getElementById(id); if (el) el.checked = !!autoCfg[m[id]]; }
+    var v = { 'auto-brief-times':'briefTimes', 'auto-score-min':'scoreMin', 'auto-earn-day':'earnDay', 'auto-earn-time':'earnTime' };
+    for (var id2 in v) { var e2 = document.getElementById(id2); if (e2) e2.value = autoCfg[v[id2]]; }
+    updateAutoStatus();
+  }
+  function updateAutoStatus() {
+    var el = document.getElementById('auto-status');
+    if (!el) return;
+    var parts = [];
+    if (autoCfg.briefOn) parts.push('briefing ' + autoCfg.briefTimes);
+    if (autoCfg.scoreOn) parts.push('score ≥' + autoCfg.scoreMin);
+    if (autoCfg.earnOn) parts.push('earnings ' + ['dom','lun','mar','mié','jue','vie','sáb'][autoCfg.earnDay] + ' ' + autoCfg.earnTime);
+    el.textContent = parts.length ? '✓ ' + parts.join(' · ') : 'todo desactivado';
+    el.style.color = parts.length ? 'var(--green)' : 'var(--text-faint)';
+  }
+
+  window.saveAutoConfig = function () {
+    function gv(id, d) { var e = document.getElementById(id); return e ? e.value : d; }
+    function gc(id, d) { var e = document.getElementById(id); return e ? e.checked : d; }
+    autoCfg.briefOn = gc('auto-brief-on', false);
+    autoCfg.briefTimes = String(gv('auto-brief-times','06:30,07:15')).trim();
+    autoCfg.scoreOn = gc('auto-score-on', false);
+    autoCfg.scoreMin = parseInt(gv('auto-score-min', 60)) || 60;
+    autoCfg.scoreNeedsNews = gc('auto-score-needs-news', true);
+    autoCfg.earnOn = gc('auto-earn-on', false);
+    autoCfg.earnDay = parseInt(gv('auto-earn-day', 1));
+    autoCfg.earnTime = String(gv('auto-earn-time','07:00')).trim();
+    saveAuto(autoCfg);
+    updateAutoStatus();
+    var tg = (window.notifCfg && window.notifCfg.telegramToken) ? 'Telegram OK' : 'ATENCION: Telegram no configurado, no recibiras nada';
+    alert('Configuracion automatica guardada.\n\n' + tg + '\n\nLa pestana debe permanecer abierta para que funcione.');
+  };
+
+  window.testAutoBriefing = async function () {
+    if (typeof generateBriefing !== 'function') { alert('Briefing no disponible aun, espera a que carguen los datos.'); return; }
+    await generateBriefing(true);
+  };
+
+  // ---------- scheduler tick (llamado cada minuto) ----------
+  async function schedulerTick() {
+    var d = nowMX();
+    var t = hhmm(d);
+    var dk = dayKey(d);
+
+    // Briefing diario
+    if (autoCfg.briefOn && isWeekday(d)) {
+      var times = autoCfg.briefTimes.split(',').map(function (s) { return s.trim(); });
+      for (var i = 0; i < times.length; i++) {
+        if (times[i] === t) {
+          var key = 'brief_' + dk + '_' + times[i];
+          if (!wasSent(key)) {
+            markSent(key);
+            console.log('[AUTO] Enviando briefing programado', times[i]);
+            try { if (typeof generateBriefing === 'function') await generateBriefing(true); } catch (e) { console.error('[AUTO] brief fail', e); }
+          }
+        }
+      }
+    }
+
+    // Earnings semanal
+    if (autoCfg.earnOn && d.getDay() === autoCfg.earnDay && t === autoCfg.earnTime) {
+      var ekey = 'earn_' + dk;
+      if (!wasSent(ekey)) {
+        markSent(ekey);
+        console.log('[AUTO] Enviando earnings semanal');
+        try { await loadEarnings(true); } catch (e) { console.error('[AUTO] earnings fail', e); }
+      }
+    }
+  }
+
+  // ---------- alertas de score alto + noticia (independiente de setups) ----------
+  var scoreAlerted = {};
+  async function checkHighScoreAlerts() {
+    if (!autoCfg.scoreOn) return;
+    if (!window.lastAllItems || !window.lastAllItems.length) return;
+    if (typeof calcActivityScore !== 'function') return;
+
+    var candidates = window.lastAllItems
+      .filter(function (it) { return it.price != null && calcActivityScore(it) >= autoCfg.scoreMin; })
+      .sort(function (a, b) { return calcActivityScore(b) - calcActivityScore(a); })
+      .slice(0, 12);
+
+    for (var i = 0; i < candidates.length; i++) {
+      var it = candidates[i];
+      var key = 'hs_' + it.symbol + '_' + Math.floor(Date.now() / (30 * 60 * 1000)); // 30 min bucket
+      if (scoreAlerted[key]) continue;
+
+      var news = [];
+      if (typeof fetchNewsForTicker === 'function' && (it.market === 'us' || it.market === 'bmv')) {
+        try {
+          var sym = it.market === 'bmv' ? it.symbol.replace('.MX','') : it.symbol;
+          var all = await fetchNewsForTicker(sym);
+          news = (all || []).filter(function (n) { return n.publishedAt && (Date.now() - n.publishedAt) < 48 * 3600000; });
+        } catch (e) {}
+      }
+      if (autoCfg.scoreNeedsNews && !news.length) continue;
+
+      scoreAlerted[key] = true;
+      var sc = calcActivityScore(it);
+      var flag = it.market === 'bmv' ? '🇲🇽' : it.market === 'crypto' ? '🪙' : '🇺🇸';
+      var lv = (typeof suggestLevels === 'function') ? suggestLevels(it) : null;
+
+      var msg = '⭐ SCORE ALTO ' + sc + '/100\n\n';
+      msg += flag + ' ' + it.symbol.replace('.MX','') + '  $' + (typeof fmtPrice === 'function' ? fmtPrice(it.price) : it.price) + '\n';
+      msg += (it.name || '') + '\n';
+      msg += 'Cambio: ' + (typeof fmtPct === 'function' ? fmtPct(it.changePct) : it.changePct + '%');
+      if (it.preMarketPct != null) msg += ' | PM: ' + (typeof fmtPct === 'function' ? fmtPct(it.preMarketPct) : it.preMarketPct + '%');
+      if (it.rvol) msg += ' | RVOL: ' + it.rvol.toFixed(2) + 'x';
+      msg += '\n';
+      if (lv) msg += '🛑 Stop sug: $' + fmtPrice(lv.stop) + '  🎯 Target: $' + fmtPrice(lv.target) + '\n';
+      if (news.length) {
+        msg += '\n📰 ' + news[0].title + '\n' + news[0].link + '\n';
+        if (news.length > 1) msg += '(+' + (news.length - 1) + ' noticias más)\n';
+      } else {
+        msg += '\n⚠️ sin catalizador reciente\n';
+      }
+      msg += '\n⚠️ Info objetiva, NO recomendación.';
+
+      try {
+        if (window.Notifs && window.notifCfg && window.notifCfg.telegramToken) {
+          await window.Notifs.sendTelegram(msg, {});
+          console.log('[AUTO] score alert enviada:', it.symbol, sc);
+        }
+        if (window.Notifs) {
+          window.Notifs.send('⭐ Score ' + sc + ' · ' + it.symbol,
+            (it.name || '') + ' $' + fmtPrice(it.price) + ' · ' + fmtPct(it.changePct) + (news.length ? ' · con noticia' : ''),
+            { ticker: it.symbol, eventType: 'highscore', soundType: 'success' });
+        }
+      } catch (e) { console.error('[AUTO] score alert fail', e); }
+      await new Promise(function (r) { setTimeout(r, 500); });
+    }
+  }
+
+  // ---------- EARNINGS CALENDAR ----------
+  window.loadEarnings = async function (sendTg) {
+    var cont = document.getElementById('body-earnings');
+    var days = parseInt((document.getElementById('earn-days') || {}).value) || 7;
+    var onlyWatch = (document.getElementById('earn-only-watch') || {}).checked;
+    var key = (window.dtConfig && window.dtConfig.finnhubKey) || (window.config && window.config.finnhubKey) || '';
+
+    if (!key) {
+      if (cont) cont.innerHTML = '<div class="empty-journal"><span class="big">🔑</span>El calendario de earnings requiere Finnhub API key.<br>Ve a ⚙ Configuración y pégala.</div>';
+      return;
+    }
+    if (cont) cont.innerHTML = '<div class="loading"><span class="spinner"></span>Consultando calendario de earnings…</div>';
+
+    var from = new Date();
+    var to = new Date(Date.now() + days * 86400000);
+    function fd(d) { return d.toISOString().slice(0, 10); }
+
+    try {
+      var url = 'https://finnhub.io/api/v1/calendar/earnings?from=' + fd(from) + '&to=' + fd(to) + '&token=' + key;
+      var r = await fetch(url);
+      var data = await r.json();
+      var list = (data && data.earningsCalendar) || [];
+
+      var watch = [];
+      if (window.dtConfig) watch = (window.dtConfig.us || []).concat(window.dtConfig.etf || []);
+      var watchSet = {};
+      watch.forEach(function (s) { watchSet[s.toUpperCase()] = true; });
+
+      if (onlyWatch && watch.length) list = list.filter(function (e) { return watchSet[(e.symbol || '').toUpperCase()]; });
+      list.sort(function (a, b) { return (a.date || '').localeCompare(b.date || '') || (b.revenueEstimate || 0) - (a.revenueEstimate || 0); });
+
+      if (!list.length) {
+        if (cont) cont.innerHTML = '<div class="empty-journal"><span class="big">📅</span>Sin earnings en los próximos ' + days + ' días' + (onlyWatch ? ' para tu watchlist. Desmarca "solo mi watchlist" para ver todo el mercado.' : '.') + '</div>';
+        return;
+      }
+
+      // agrupar por fecha
+      var byDate = {};
+      list.forEach(function (e) { (byDate[e.date] = byDate[e.date] || []).push(e); });
+      var dates = Object.keys(byDate).sort();
+      var dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      var html = '';
+      dates.forEach(function (dt) {
+        var dd = new Date(dt + 'T12:00:00');
+        var isToday = fd(new Date()) === dt;
+        html += '<div style="padding:9px 14px;background:var(--bg-card-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-weight:700;font-size:12.5px;color:' + (isToday ? 'var(--yellow)' : 'var(--text)') + '">'
+              + (isToday ? '🔴 HOY · ' : '') + dayNames[dd.getDay()] + ' ' + dd.getDate() + '/' + (dd.getMonth() + 1)
+              + ' <span style="font-weight:400;color:var(--text-dim);font-size:11px">· ' + byDate[dt].length + ' empresas</span></div>';
+        html += '<div class="table-wrap"><table><thead><tr><th>Ticker</th><th>Momento</th><th class="right">EPS est.</th><th class="right">EPS ant.</th><th class="right">Rev. est.</th><th class="right">Precio hoy</th><th class="right">Cambio</th></tr></thead><tbody>';
+        byDate[dt].forEach(function (e) {
+          var hourLabel = e.hour === 'bmo' ? '🌅 antes de abrir' : e.hour === 'amc' ? '🌙 después del cierre' : (e.hour || '–');
+          var live = null;
+          if (window.lastAllItems) {
+            for (var i = 0; i < window.lastAllItems.length; i++) {
+              if (window.lastAllItems[i].symbol === e.symbol) { live = window.lastAllItems[i]; break; }
+            }
+          }
+          function money(v) {
+            if (v == null) return '–';
+            if (Math.abs(v) >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+            if (Math.abs(v) >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+            return '$' + v.toLocaleString();
+          }
+          html += '<tr class="row-click" onclick="showChart(\'' + e.symbol + '\',\'us\',\'' + e.symbol + '\')">'
+                + '<td class="symbol symbol-clickable">' + e.symbol + '</td>'
+                + '<td style="font-size:11px;color:var(--text-dim)">' + hourLabel + '</td>'
+                + '<td class="right">' + (e.epsEstimate != null ? '$' + e.epsEstimate.toFixed(2) : '–') + '</td>'
+                + '<td class="right" style="color:var(--text-dim)">' + (e.epsActual != null ? '$' + e.epsActual.toFixed(2) : '–') + '</td>'
+                + '<td class="right" style="font-size:11px">' + money(e.revenueEstimate) + '</td>'
+                + '<td class="right">' + (live ? '$' + fmtPrice(live.price) : '–') + '</td>'
+                + '<td class="right">' + (live ? '<span class="change ' + (live.changePct >= 0 ? 'up' : 'down') + '">' + fmtPct(live.changePct) + '</span>' : '–') + '</td>'
+                + '</tr>';
+        });
+        html += '</tbody></table></div>';
+      });
+
+      var head = '<div style="padding:10px 14px;font-size:11.5px;color:var(--text-dim);background:var(--bg-card);border-bottom:1px solid var(--border)">'
+               + '<strong style="color:var(--text)">' + list.length + ' reportes</strong> entre ' + fd(from) + ' y ' + fd(to)
+               + (onlyWatch ? ' <span style="color:var(--yellow)">(filtrado a tu watchlist)</span>' : ' (todo el mercado)')
+               + ' · <strong>bmo</strong> = antes de abrir · <strong>amc</strong> = después del cierre</div>';
+      if (cont) cont.innerHTML = head + html;
+
+      if (sendTg) {
+        if (!(window.notifCfg && window.notifCfg.telegramToken)) { alert('Telegram no configurado.'); return; }
+        var msg = '📅 EARNINGS PRÓXIMOS ' + days + ' DÍAS\n' + new Date().toLocaleDateString('es-MX') + '\n';
+        msg += (onlyWatch ? '(tu watchlist)' : '(todo el mercado)') + '\n━━━━━━━━━━━━━━━━\n';
+        dates.forEach(function (dt) {
+          var dd = new Date(dt + 'T12:00:00');
+          msg += '\n📆 ' + dayNames[dd.getDay()] + ' ' + dd.getDate() + '/' + (dd.getMonth() + 1) + '\n';
+          byDate[dt].slice(0, 15).forEach(function (e) {
+            var h = e.hour === 'bmo' ? '🌅' : e.hour === 'amc' ? '🌙' : '';
+            msg += '  ' + h + ' ' + e.symbol + (e.epsEstimate != null ? '  EPS est $' + e.epsEstimate.toFixed(2) : '') + '\n';
+          });
+          if (byDate[dt].length > 15) msg += '  (+' + (byDate[dt].length - 15) + ' más)\n';
+        });
+        msg += '\n━━━━━━━━━━━━━━━━\n🌅 antes de abrir | 🌙 después del cierre\n⚠️ Earnings mueven 10-40%. Muchos traders evitan operar justo antes.';
+        var chunks = [], cur = '';
+        msg.split('\n').forEach(function (ln) {
+          if ((cur + ln + '\n').length > 3800) { chunks.push(cur); cur = ''; }
+          cur += ln + '\n';
+        });
+        if (cur) chunks.push(cur);
+        for (var ci = 0; ci < chunks.length; ci++) {
+          await window.Notifs.sendTelegram(chunks[ci], {});
+          await new Promise(function (r) { setTimeout(r, 400); });
+        }
+        alert('Calendario de earnings enviado a Telegram (' + list.length + ' reportes)');
+      }
+    } catch (e) {
+      if (cont) cont.innerHTML = '<div class="error">Error consultando earnings: ' + e.message + '<br>Verifica tu Finnhub API key. El endpoint /calendar/earnings puede requerir plan pago en algunos casos.</div>';
+    }
+  };
+
+  // Tab hook
+  document.querySelectorAll('.tab[data-tab="earnings"]').forEach(function (t) {
+    t.addEventListener('click', function () { setTimeout(function () { if (!document.querySelector('#body-earnings table')) loadEarnings(false); }, 100);});
+  });
+
+  // ---------- master loop: cada 60s ----------
+  setInterval(function () {
+    schedulerTick().catch(function (e) { console.error('[AUTO] tick fail', e); });
+    checkHighScoreAlerts().catch(function (e) { console.error('[AUTO] score fail', e); });
+  }, 60000);
+
+  // primera corrida a los 20s (dar tiempo a que carguen datos)
+  setTimeout(function () {
+    schedulerTick().catch(function(){});
+    checkHighScoreAlerts().catch(function(){});
+  }, 20000);
+
+  // init UI
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fillAutoUI);
+  else fillAutoUI();
+
+  console.log('[AUTO] Modulo de envio automatico listo.');
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   SCHEDULER BASADO EN APERTURA DE MERCADO (reemplaza el de horas fijas)
+   ============================================================ */
+(function () {
+  'use strict';
+  var AK = 'dt_auto_cfg';
+  var SK = 'dt_auto_sent';
+
+  function cfg() {
+    try { return JSON.parse(localStorage.getItem(AK) || '{}'); } catch (e) { return {}; }
+  }
+  function saveCfg(c) { localStorage.setItem(AK, JSON.stringify(c)); }
+  function sent() { try { return JSON.parse(localStorage.getItem(SK) || '{}'); } catch (e) { return {}; } }
+  function mark(k) { var s = sent(); s[k] = Date.now(); localStorage.setItem(SK, JSON.stringify(s)); }
+  function was(k) { return !!sent()[k]; }
+
+  function nowMX() { return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' })); }
+  function dayKey(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+  // Devuelve minutos-desde-medianoche (hora CDMX) de la apertura de cada mercado
+  window.getOpenMinutes = function () {
+    var now = new Date();
+    var et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    var mx = new Date(now.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+    var diffH = Math.round((et - mx) / 3600000);        // 2 en verano (EDT), 1 en invierno (EST)
+    var usOpenMin = 9 * 60 + 30 - diffH * 60;            // 9:30 ET convertido a CDMX
+    // BMV: 9 mar - 30 oct usa 7:30, resto 8:30 (CDMX)
+    var mo = mx.getMonth(), day = mx.getDate();
+    var homolog = (mo > 2 || (mo === 2 && day >= 9)) && (mo < 9 || (mo === 9 && day <= 30));
+    var bmvOpenMin = homolog ? (7 * 60 + 30) : (8 * 60 + 30);
+    return { us: usOpenMin, bmv: bmvOpenMin, diffH: diffH, homolog: homolog };
+  };
+
+  function fmtMin(m) {
+    m = ((m % 1440) + 1440) % 1440;
+    return String(Math.floor(m / 60)).padStart(2,'0') + ':' + String(m % 60).padStart(2,'0');
+  }
+
+  window.updateBriefPreview = function () {
+    var el = document.getElementById('auto-brief-preview');
+    if (!el) return;
+    var off = parseInt((document.getElementById('auto-brief-offset') || {}).value) || 10;
+    var o = getOpenMinutes();
+    var doUS = (document.getElementById('auto-brief-us') || {}).checked;
+    var doMX = (document.getElementById('auto-brief-bmv') || {}).checked;
+    var parts = [];
+    if (doUS) parts.push('🇺🇸 ' + fmtMin(o.us - off) + ' (abre ' + fmtMin(o.us) + ')');
+    if (doMX) parts.push('🇲🇽 ' + fmtMin(o.bmv - off) + ' (abre ' + fmtMin(o.bmv) + ')');
+    el.innerHTML = parts.length ? '⏰ Envío: ' + parts.join(' &nbsp;·&nbsp; ') + ' hora CDMX' : 'Selecciona al menos un mercado';
+  };
+
+  // Briefing filtrado por mercado
+  window.sendMarketBriefing = async function (market) {
+    if (!window.notifCfg || !window.notifCfg.telegramToken) { console.warn('[AUTO] sin Telegram'); return; }
+    if (!window.lastAllItems || !window.lastAllItems.length) { console.warn('[AUTO] sin datos'); return; }
+
+    var items = window.lastAllItems.filter(function (it) {
+      if (it.price == null || it.changePct == null) return false;
+      return market === 'us' ? it.market === 'us' : it.market === 'bmv';
+    });
+    if (!items.length) { console.warn('[AUTO] sin items para', market); return; }
+
+    var st = (typeof getMarketStatus === 'function') ? getMarketStatus() : { state:'?', label:'' };
+    items = items.map(function (it) {
+      var s = calcActivityScore(it);
+      if (it.preMarketPct != null) s += Math.abs(it.preMarketPct) * 2;
+      return { it: it, score: s };
+    }).sort(function (a,b) { return b.score - a.score; }).slice(0, 20).map(function (x) { return x.it; });
+
+    // noticias
+    var newsMap = {};
+    if (typeof fetchNewsForTicker === 'function') {
+      for (var i = 0; i < items.length; i += 5) {
+        var batch = items.slice(i, i + 5);
+        await Promise.all(batch.map(async function (it) {
+          try {
+            var sym = it.market === 'bmv' ? it.symbol.replace('.MX','') : it.symbol;
+            var all = await fetchNewsForTicker(sym);
+            newsMap[it.symbol] = (all || []).filter(function (n) { return n.publishedAt && (Date.now() - n.publishedAt) < 48*3600000; });
+          } catch (e) { newsMap[it.symbol] = []; }
+        }));
+      }
+    }
+
+    var o = getOpenMinutes();
+    var flag = market === 'us' ? '🇺🇸' : '🇲🇽';
+    var title = market === 'us' ? 'NUEVA YORK (NYSE/NASDAQ)' : 'BOLSA MEXICANA (BMV)';
+    var openAt = fmtMin(market === 'us' ? o.us : o.bmv);
+    var withNews = items.filter(function (it) { return (newsMap[it.symbol]||[]).length; }).length;
+
+    var msg = flag + ' BRIEFING ' + title + '\n';
+    msg += '⏰ Abre en ~10 min (' + openAt + ' CDMX)\n';
+    msg += new Date().toLocaleString('es-MX') + '\n';
+    msg += '📰 ' + withNews + '/' + items.length + ' con catalizador\n';
+    msg += '━━━━━━━━━━━━━━━━\n\n';
+
+    items.forEach(function (it, i) {
+      var lv = (typeof suggestLevels === 'function') ? suggestLevels(it) : null;
+      var news = newsMap[it.symbol] || [];
+      var pm = it.preMarketPct != null ? it.preMarketPct : it.postMarketPct;
+      msg += (i+1) + '. ' + it.symbol.replace('.MX','') + '  $' + fmtPrice(it.price) + (news.length ? '  🔥' : '') + '\n';
+      msg += '   ' + fmtPct(it.changePct);
+      if (pm != null) msg += ' | PM ' + fmtPct(pm);
+      if (it.rvol) msg += ' | RVOL ' + it.rvol.toFixed(2) + 'x';
+      msg += ' | Sc ' + calcActivityScore(it) + '\n';
+      if (lv) msg += '   🛑 $' + fmtPrice(lv.stop) + '  🎯 $' + fmtPrice(lv.target) + '\n';
+      if (news.length) {
+        msg += '   📰 ' + (news[0].title.length > 80 ? news[0].title.slice(0,80) + '…' : news[0].title) + '\n';
+        msg += '   ' + news[0].link + '\n';
+      } else {
+        msg += '   ⚠️ sin catalizador\n';
+      }
+      msg += '\n';
+    });
+    msg += '━━━━━━━━━━━━━━━━\n⚠️ Info objetiva, NO recomendación.\nSin catalizador + volumen, mejor no operar.';
+
+    var chunks = [], cur = '';
+    msg.split('\n').forEach(function (ln) {
+      if ((cur + ln + '\n').length > 3800) { chunks.push(cur); cur = ''; }
+      cur += ln + '\n';
+    });
+    if (cur) chunks.push(cur);
+    for (var ci = 0; ci < chunks.length; ci++) {
+      await window.Notifs.sendTelegram(chunks[ci] + (chunks.length > 1 ? '\n[' + (ci+1) + '/' + chunks.length + ']' : ''), {});
+      await new Promise(function (r) { setTimeout(r, 450); });
+    }
+    console.log('[AUTO] briefing', market, 'enviado:', items.length, 'tickers');
+  };
+
+  // Scheduler que corre cada minuto
+  async function tick() {
+    var c = cfg();
+    if (!c.briefOn) return;
+    var d = nowMX();
+    if (d.getDay() === 0 || d.getDay() === 6) return;     // solo días hábiles
+    var curMin = d.getHours() * 60 + d.getMinutes();
+    var off = parseInt(c.briefOffset) || 10;
+    var o = getOpenMinutes();
+    var dk = dayKey(d);
+
+    if (c.briefUS !== false && curMin === (o.us - off)) {
+      var k1 = 'brf_us_' + dk;
+      if (!was(k1)) { mark(k1); console.log('[AUTO] disparando briefing US'); try { await sendMarketBriefing('us'); } catch (e) { console.error(e); } }
+    }
+    if (c.briefBMV !== false && curMin === (o.bmv - off)) {
+      var k2 = 'brf_bmv_' + dk;
+      if (!was(k2)) {
+        mark(k2);
+        console.log('[AUTO] disparando briefing BMV');
+        await new Promise(function (r) { setTimeout(r, 4000); });  // separar de US si coinciden
+        try { await sendMarketBriefing('bmv'); } catch (e) { console.error(e); }
+      }
+    }
+  }
+
+  setInterval(function () { tick().catch(function (e) { console.error('[AUTO] sched', e); }); }, 60000);
+  setTimeout(function () { tick().catch(function(){}); }, 25000);
+
+  // Extender saveAutoConfig para guardar los nuevos campos
+  var _origSave = window.saveAutoConfig;
+  window.saveAutoConfig = function () {
+    var c = cfg();
+    function gv(id, d) { var e = document.getElementById(id); return e ? e.value : d; }
+    function gc(id, d) { var e = document.getElementById(id); return e ? e.checked : d; }
+    c.briefOn = gc('auto-brief-on', false);
+    c.briefOffset = parseInt(gv('auto-brief-offset', 10)) || 10;
+    c.briefUS = gc('auto-brief-us', true);
+    c.briefBMV = gc('auto-brief-bmv', true);
+    c.scoreOn = gc('auto-score-on', false);
+    c.scoreMin = parseInt(gv('auto-score-min', 60)) || 60;
+    c.scoreNeedsNews = gc('auto-score-needs-news', true);
+    c.earnOn = gc('auto-earn-on', false);
+    c.earnDay = parseInt(gv('auto-earn-day', 1));
+    c.earnTime = String(gv('auto-earn-time','07:00')).trim();
+    saveCfg(c);
+    if (window.dtAutoCfg) { for (var k in c) window.dtAutoCfg[k] = c[k]; }
+    updateBriefPreview();
+    var st = document.getElementById('auto-status');
+    if (st) {
+      var p = [];
+      var o = getOpenMinutes();
+      if (c.briefOn) {
+        var ps = [];
+        if (c.briefUS) ps.push('🇺🇸' + fmtMin(o.us - c.briefOffset));
+        if (c.briefBMV) ps.push('🇲🇽' + fmtMin(o.bmv - c.briefOffset));
+        p.push('briefing ' + ps.join('/'));
+      }
+      if (c.scoreOn) p.push('score ≥' + c.scoreMin);
+      if (c.earnOn) p.push('earnings ' + ['dom','lun','mar','mié','jue','vie','sáb'][c.earnDay] + ' ' + c.earnTime);
+      st.textContent = p.length ? '✓ ' + p.join(' · ') : 'todo desactivado';
+      st.style.color = p.length ? 'var(--green)' : 'var(--text-faint)';
+    }
+    var tgOK = (window.notifCfg && window.notifCfg.telegramToken);
+    var oo = getOpenMinutes();
+    alert('Guardado.\n\n' + (c.briefOn ?
+        'Briefing automático:\n' +
+        (c.briefUS ? '  🇺🇸 US a las ' + fmtMin(oo.us - c.briefOffset) + ' (abre ' + fmtMin(oo.us) + ')\n' : '') +
+        (c.briefBMV ? '  🇲🇽 BMV a las ' + fmtMin(oo.bmv - c.briefOffset) + ' (abre ' + fmtMin(oo.bmv) + ')\n' : '')
+      : 'Briefing automático: desactivado\n')
+      + '\n' + (tgOK ? '✓ Telegram configurado' : '⚠ Telegram NO configurado — no recibirás nada')
+      + '\n\nLa pestaña debe permanecer abierta.');
+  };
+
+  // Botón de prueba: manda ambos briefings ya
+  window.testAutoBriefing = async function () {
+    if (!window.notifCfg || !window.notifCfg.telegramToken) { alert('Configura Telegram primero (panel de abajo a la izquierda).'); return; }
+    var doUS = (document.getElementById('auto-brief-us') || {}).checked;
+    var doMX = (document.getElementById('auto-brief-bmv') || {}).checked;
+    try {
+      if (doUS) await sendMarketBriefing('us');
+      if (doMX) { await new Promise(function (r) { setTimeout(r, 1500); }); await sendMarketBriefing('bmv'); }
+      alert('Briefing(s) enviado(s) a Telegram. Revisa tu celular.');
+    } catch (e) { alert('Error: ' + e.message); }
+  };
+
+  // Cargar valores guardados en la UI nueva
+  function fill() {
+    var c = cfg();
+    var e;
+    if ((e = document.getElementById('auto-brief-offset'))) e.value = c.briefOffset || 10;
+    if ((e = document.getElementById('auto-brief-us'))) e.checked = c.briefUS !== false;
+    if ((e = document.getElementById('auto-brief-bmv'))) e.checked = c.briefBMV !== false;
+    ['auto-brief-offset','auto-brief-us','auto-brief-bmv'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('change', updateBriefPreview);
+    });
+    updateBriefPreview();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fill);
+  else setTimeout(fill, 300);
+
+  console.log('[AUTO] Scheduler por apertura de mercado activo.');
 })();
 </script>
 
