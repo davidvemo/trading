@@ -1,0 +1,20 @@
+# NUNCA subir credenciales
+dt_config_local.js
+token.txt
+.github_token
+.env
+*.token
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# Python
+__pycache__/
+*.pyc
+
+# Backups
+*.bak
+*~
