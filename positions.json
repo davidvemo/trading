@@ -1,0 +1,9 @@
+{
+  "_ayuda": "Posiciones que el bot de GitHub Actions vigilara SIN necesidad de tu navegador. Editalo aqui o en github.com/davidvemo/trading. El bot revisa cada hora durante la sesion y te avisa si el precio se acerca o cruza tus niveles.",
+  "_ejemplo": {
+    "ticker": "NVDA", "qty": 100, "entry": 175.50,
+    "stop": 170.25, "target": 186.00, "trailing_pct": 2.0,
+    "proximity_pct": 25, "notas": "breakout con earnings"
+  },
+  "posiciones": []
+}
