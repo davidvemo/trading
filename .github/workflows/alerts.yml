@@ -1,0 +1,57 @@
+name: Alertas Trading
+
+on:
+  schedule:
+    # NOTA: GitHub usa UTC. CDMX = UTC-6 (todo el año).
+    # Verano EEUU (mar-oct): mercados abren 7:30 CDMX = 13:30 UTC -> aviso 13:20 UTC
+    - cron: '20 13 * 3-10 1-5'   # briefing US 7:20 CDMX (mar-oct)
+    - cron: '22 13 * 3-10 1-5'   # briefing BMV 7:22 CDMX (mar-oct)
+    # Invierno (nov-feb): abren 8:30 CDMX = 14:30 UTC -> aviso 14:20 UTC
+    - cron: '20 14 * 1,2,11,12 1-5'
+    - cron: '22 14 * 1,2,11,12 1-5'
+    # Movers con noticia: 8:05, 10:05, 12:05, 14:05 CDMX
+    - cron: '5 14,16,18,20 * * 1-5'
+    # Vigilancia de posiciones (stop/target): cada 30 min durante sesión
+    - cron: '15,45 14,15,16,17,18,19,20 * * 1-5'
+    # Earnings: lunes 13:00 UTC = 7:00 CDMX
+    - cron: '0 13 * * 1'
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: 'Modo a ejecutar'
+        required: true
+        default: 'test'
+        type: choice
+        options: [test, brief-us, brief-bmv, movers, earnings, positions]
+
+jobs:
+  alertas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Determinar modo
+        id: modo
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "m=${{ github.event.inputs.modo }}" >> $GITHUB_OUTPUT
+          else
+            MIN=$(date -u +%M); HOUR=$(date -u +%H); DOW=$(date -u +%u)
+            if   [ "$MIN" = "20" ]; then echo "m=brief-us"  >> $GITHUB_OUTPUT
+            elif [ "$MIN" = "22" ]; then echo "m=brief-bmv" >> $GITHUB_OUTPUT
+            elif [ "$MIN" = "05" ]; then echo "m=movers"    >> $GITHUB_OUTPUT
+            elif [ "$MIN" = "15" ] || [ "$MIN" = "45" ]; then echo "m=positions" >> $GITHUB_OUTPUT
+            elif [ "$MIN" = "00" ] && [ "$DOW" = "1" ]; then echo "m=earnings" >> $GITHUB_OUTPUT
+            else echo "m=movers" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Ejecutar alertas
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: python .github/workflows/alerts.py ${{ steps.modo.outputs.m }}
