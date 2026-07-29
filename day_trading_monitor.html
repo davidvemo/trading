@@ -3807,7 +3807,7 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
     wrap.innerHTML =
       '<div id="dtdiag-head" style="padding:9px 12px;background:linear-gradient(90deg,#4f8cff,#a855f7);color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer">'
       + '<span>🔧 Diagnóstico y Telegram</span>'
-      + '<span id="dtdiag-toggle" style="font-size:14px">▾</span>'
+      + '<span><span id="dtdiag-hide" title="Ocultar panel" style="font-size:13px;margin-right:8px;opacity:.85">✕</span><span id="dtdiag-toggle" style="font-size:14px">▾</span></span>'
       + '</div>'
       + '<div id="dtdiag-body" style="padding:12px">'
 
@@ -3832,6 +3832,11 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
 
     // Colapsar/expandir
     var collapsed = false;
+    document.getElementById('dtdiag-hide').addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      wrap.style.display = 'none';
+      addReopenButton();
+    });
     document.getElementById('dtdiag-head').addEventListener('click', function () {
       collapsed = !collapsed;
       document.getElementById('dtdiag-body').style.display = collapsed ? 'none' : 'block';
@@ -3874,7 +3879,32 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
       errs.slice(0, 3).forEach(function (e) { log('  → ' + e, 'err'); });
     });
 
-    log('Panel listo. Pega tus credenciales y dale Guardar + Probar.', 'info');
+    // Auto-colapsar / ocultar si ya esta todo configurado
+    var cfgNow = readCfg();
+    var ready = !!(cfgNow.telegramToken && cfgNow.telegramChat);
+    if (ready) {
+      wrap.style.display = 'none';
+      addReopenButton();
+      log('Credenciales cargadas. Panel oculto.', 'ok');
+    } else {
+      log('Pega tus credenciales y dale Guardar + Probar.', 'info');
+    }
+  }
+
+  function addReopenButton() {
+    if (document.getElementById('dtdiag-reopen')) return;
+    var b = document.createElement('button');
+    b.id = 'dtdiag-reopen';
+    b.title = 'Abrir diagnostico / Telegram';
+    b.textContent = '🔧';
+    b.style.cssText = 'position:fixed;bottom:12px;left:12px;width:34px;height:34px;border-radius:50%;background:#131927;border:1px solid #243049;color:#8b96ad;font-size:15px;cursor:pointer;z-index:9998;box-shadow:0 4px 14px rgba(0,0,0,.5);transition:all .15s';
+    b.onmouseover = function () { b.style.borderColor = '#4f8cff'; b.style.color = '#e8eef9'; };
+    b.onmouseout = function () { b.style.borderColor = '#243049'; b.style.color = '#8b96ad'; };
+    b.onclick = function () {
+      var w = document.getElementById('dtdiag');
+      if (w) { w.style.display = 'block'; b.remove(); }
+    };
+    document.body.appendChild(b);
   }
 
   if (document.readyState === 'loading') {
@@ -4464,6 +4494,41 @@ window.exportPositionsJSON = function () {
   URL.revokeObjectURL(a.href);
   alert('positions.json descargado con ' + open.length + ' posicion(es).\n\nSubelo a la RAIZ del repo:\ngithub.com/davidvemo/trading\n\nAsi GitHub Actions vigilara tus stop-loss y take-profit cada 30 min aunque tengas todo apagado.');
 };
+</script>
+
+<script>
+/* Si dt_config_local.js proveyo las credenciales, marcar los campos como gestionados */
+(function () {
+  function tag() {
+    var P = window.DT_PRESET;
+    if (!P) return;
+    function real(v) { return v && !/PEGA_TU|TU_TOKEN|TU_FINNHUB|AQUI/i.test(String(v)); }
+    var pairs = [
+      ['cfg-tg-token',  real(P.telegramToken), 'Telegram token'],
+      ['cfg-tg-chat',   real(P.telegramChat),  'Chat ID'],
+      ['cfg-finnhub',   real(P.finnhubKey),    'Finnhub key']
+    ];
+    pairs.forEach(function (pr) {
+      var el = document.getElementById(pr[0]);
+      if (!el || !pr[1]) return;
+      el.readOnly = true;
+      el.style.opacity = '.6';
+      el.style.cursor = 'not-allowed';
+      el.title = 'Gestionado por dt_config_local.js — editalo ahi para cambiarlo';
+      if (!el.dataset.tagged) {
+        el.dataset.tagged = '1';
+        var badge = document.createElement('div');
+        badge.style.cssText = 'font-size:9.5px;color:#16c784;margin-top:3px';
+        badge.textContent = '✓ cargado desde dt_config_local.js';
+        el.parentNode.insertBefore(badge, el.nextSibling);
+      }
+    });
+  }
+  var btn = document.getElementById('btn-settings');
+  if (btn) btn.addEventListener('click', function () { setTimeout(tag, 120); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(tag, 500); });
+  else setTimeout(tag, 500);
+})();
 </script>
 
 </body>
