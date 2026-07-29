@@ -6,6 +6,72 @@
 <title>Day Trading Pro – v3 con TradingView</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://s3.tradingview.com/tv.js"></script>
+<!-- Config local opcional (no se sube a GitHub). Si no existe, se ignora. -->
+<script src="dt_config_local.js" onerror="console.log('[DT] Sin dt_config_local.js, usando localStorage')"></script>
+<script>
+/* ============================================================
+   APLICAR CONFIG LOCAL (dt_config_local.js) A localStorage
+   Corre antes del script principal para que todo lo lea ya listo.
+   ============================================================ */
+(function () {
+  var P = window.DT_PRESET;
+  if (!P) { console.log('[DT] No hay DT_PRESET'); return; }
+
+  function isPlaceholder(v) {
+    return !v || /PEGA_TU|TU_TOKEN|TU_FINNHUB|AQUI/i.test(String(v));
+  }
+
+  // --- notificaciones / telegram ---
+  var nc = {};
+  try { nc = JSON.parse(localStorage.getItem('dt_notif_cfg') || '{}'); } catch (e) {}
+  var changed = false;
+  if (!isPlaceholder(P.telegramToken) && nc.telegramToken !== P.telegramToken) { nc.telegramToken = P.telegramToken; changed = true; }
+  if (!isPlaceholder(P.telegramChat) && nc.telegramChat !== String(P.telegramChat)) { nc.telegramChat = String(P.telegramChat); changed = true; }
+  if (nc.enabled !== true) { nc.enabled = true; changed = true; }
+  if (P.sound !== undefined && nc.sound !== P.sound) { nc.sound = P.sound; changed = true; }
+  if (nc.movers === undefined) { nc.movers = true; changed = true; }
+  if (nc.premarket === undefined) { nc.premarket = true; changed = true; }
+  if (nc.positions === undefined) { nc.positions = true; changed = true; }
+  if (nc.cooldown === undefined) { nc.cooldown = 15; changed = true; }
+  if (changed) localStorage.setItem('dt_notif_cfg', JSON.stringify(nc));
+
+  // --- config principal (finnhub, umbral, intervalo) ---
+  var cf = {};
+  try { cf = JSON.parse(localStorage.getItem('dt_config_v3') || '{}'); } catch (e) {}
+  var ch2 = false;
+  if (!isPlaceholder(P.finnhubKey) && cf.finnhubKey !== P.finnhubKey) { cf.finnhubKey = P.finnhubKey; ch2 = true; }
+  if (P.threshold && cf.threshold !== P.threshold) { cf.threshold = P.threshold; ch2 = true; }
+  if (P.intervalSec && cf.intervalSec !== P.intervalSec) { cf.intervalSec = P.intervalSec; ch2 = true; }
+  if (ch2) localStorage.setItem('dt_config_v3', JSON.stringify(cf));
+
+  // --- envio automatico ---
+  var ac = {};
+  try { ac = JSON.parse(localStorage.getItem('dt_auto_cfg') || '{}'); } catch (e) {}
+  var ch3 = false;
+  if (P.autoBrief !== undefined && ac.briefOn !== P.autoBrief) { ac.briefOn = P.autoBrief; ch3 = true; }
+  if (P.briefOffset && ac.briefOffset !== P.briefOffset) { ac.briefOffset = P.briefOffset; ch3 = true; }
+  if (ac.briefUS === undefined) { ac.briefUS = true; ch3 = true; }
+  if (ac.briefBMV === undefined) { ac.briefBMV = true; ch3 = true; }
+  if (P.autoScore !== undefined && ac.scoreOn !== P.autoScore) { ac.scoreOn = P.autoScore; ch3 = true; }
+  if (P.scoreMin && ac.scoreMin !== P.scoreMin) { ac.scoreMin = P.scoreMin; ch3 = true; }
+  if (ac.scoreNeedsNews === undefined) { ac.scoreNeedsNews = true; ch3 = true; }
+  if (ch3) localStorage.setItem('dt_auto_cfg', JSON.stringify(ac));
+
+  window.DT_PRESET_APPLIED = true;
+  console.log('[DT] Config local aplicada. Telegram:', !isPlaceholder(P.telegramToken), '| Finnhub:', !isPlaceholder(P.finnhubKey));
+
+  // Aviso visual si quedaron placeholders
+  if (isPlaceholder(P.telegramToken) || isPlaceholder(P.finnhubKey)) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var d = document.createElement('div');
+      d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#f5b041;color:#06090f;padding:9px 14px;font-size:12px;z-index:9999;font-weight:600;text-align:center';
+      d.innerHTML = 'Edita <code style="background:rgba(0,0,0,.15);padding:1px 5px;border-radius:3px">dt_config_local.js</code> y reemplaza los valores PEGA_TU_... con tu token de Telegram y tu API key de Finnhub. '
+        + '<button onclick="this.parentElement.remove()" style="margin-left:8px;background:#06090f;color:#fff;border:none;padding:3px 9px;border-radius:4px;cursor:pointer">Ocultar</button>';
+      document.body.insertBefore(d, document.body.firstChild);
+    });
+  }
+})();
+</script>
 <style>
 :root{--bg:#06090f;--bg-card:#0f1521;--bg-card-2:#171f30;--bg-input:#0a0f1a;--border:#1f2940;--border-soft:#1a2238;--text:#e8eef9;--text-dim:#8b96ad;--text-faint:#5a6478;--green:#16c784;--green-bg:rgba(22,199,132,.12);--green-bg-s:rgba(22,199,132,.22);--red:#ea3943;--red-bg:rgba(234,57,67,.12);--red-bg-s:rgba(234,57,67,.22);--yellow:#f5b041;--yellow-bg:rgba(245,176,65,.12);--blue:#4f8cff;--blue-bg:rgba(79,140,255,.15);--purple:#a855f7;--purple-bg:rgba(168,85,247,.15)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -589,7 +655,8 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
       <div class="section">
         <div class="section-header"><h2>📜 Historial de Trades Cerrados <span class="count" id="count-closed-pos">0</span></h2>
           <div class="section-toolbar">
-            <button class="btn-csv" onclick="exportTradesCSV()">📥 Exportar CSV</button>
+            <button class="btn-csv" onclick="exportTradesCSV()">📥 CSV</button>
+            <button class="btn-csv" onclick="exportPositionsJSON()" style="border-color:var(--purple);color:var(--purple)" title="Genera positions.json para que GitHub Actions vigile tus posiciones sin navegador">☁ positions.json</button>
             <button class="btn-csv" onclick="clearJournal()" style="color:var(--red)">🗑 Borrar todo</button>
           </div>
         </div>
@@ -4366,6 +4433,37 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
 
   console.log('[AUTO] Scheduler por apertura de mercado activo.');
 })();
+</script>
+
+
+<script>
+/* Exporta posiciones abiertas a positions.json para GitHub Actions */
+window.exportPositionsJSON = function () {
+  var trades = [];
+  try { trades = JSON.parse(localStorage.getItem('dt_trades_v4') || '[]'); } catch (e) {}
+  var open = trades.filter(function (t) { return t.status === 'open'; });
+  var out = {
+    _ayuda: 'Generado por el dashboard. Subelo a la raiz del repo davidvemo/trading para que GitHub Actions vigile estas posiciones sin necesidad de navegador abierto.',
+    _generado: new Date().toISOString(),
+    posiciones: open.map(function (t) {
+      return {
+        ticker: t.ticker, qty: t.qty, entry: t.entryPrice,
+        stop: t.stopLoss || null, target: t.takeProfit || null,
+        trailing_pct: t.trailingStopPct || null,
+        proximity_pct: t.proximityPct || 25,
+        highest: t.highestPrice || t.entryPrice,
+        notas: t.notes || ''
+      };
+    })
+  };
+  var blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'positions.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  alert('positions.json descargado con ' + open.length + ' posicion(es).\n\nSubelo a la RAIZ del repo:\ngithub.com/davidvemo/trading\n\nAsi GitHub Actions vigilara tus stop-loss y take-profit cada 30 min aunque tengas todo apagado.');
+};
 </script>
 
 </body>
