@@ -1,0 +1,26 @@
+name: Briefing BMV
+
+on:
+  schedule:
+    - cron: '8 13 * 3-10 1-5'
+    - cron: '8 14 * 1,2,11,12 1-5'
+  workflow_dispatch:
+
+concurrency:
+  group: brief-bmv.yml
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Briefing BMV
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: python .github/workflows/alerts.py brief-bmv
