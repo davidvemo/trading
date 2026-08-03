@@ -1,0 +1,25 @@
+name: Vigilar Posiciones
+
+on:
+  schedule:
+    - cron: '0,30 14,15,16,17,18,19,20 * * 1-5'
+  workflow_dispatch:
+
+concurrency:
+  group: positions.yml
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Vigilar Posiciones
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: python .github/workflows/alerts.py positions
