@@ -211,7 +211,9 @@ def movers_with_news(min_score=60):
         tg(msg); sent += 1
         time.sleep(1)
     print(f"[OK] {sent} alertas enviadas")
-    if sent == 0: print("[i] Ningun ticker cumplio score+noticia")
+    if sent == 0:
+        mx = datetime.now(timezone(timedelta(hours=-6)))
+        tg(f"[movers] {mx:%H:%M} CDMX - revise {len(items)} tickers, ninguno con score>={min_score} + noticia reciente.")
 
 def earnings(days=7):
     if not FINNHUB:
