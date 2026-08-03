@@ -42,6 +42,12 @@
   if (!isPlaceholder(P.finnhubKey) && cf.finnhubKey !== P.finnhubKey) { cf.finnhubKey = P.finnhubKey; ch2 = true; }
   if (P.threshold && cf.threshold !== P.threshold) { cf.threshold = P.threshold; ch2 = true; }
   if (P.intervalSec && cf.intervalSec !== P.intervalSec) { cf.intervalSec = P.intervalSec; ch2 = true; }
+  // watchlists compartidas con la app de Windows y el bot
+  ['us','etf','bmv','crypto'].forEach(function (k) {
+    if (Array.isArray(P[k]) && P[k].length && JSON.stringify(cf[k]) !== JSON.stringify(P[k])) {
+      cf[k] = P[k]; ch2 = true;
+    }
+  });
   if (ch2) localStorage.setItem('dt_config_v3', JSON.stringify(cf));
 
   // --- envio automatico ---
