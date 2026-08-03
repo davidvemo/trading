@@ -7,7 +7,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://s3.tradingview.com/tv.js"></script>
 <!-- Config local opcional (no se sube a GitHub). Si no existe, se ignora. -->
-<script src="dt_config_local.js" onerror="console.log('[DT] Sin dt_config_local.js, usando localStorage')"></script>
+<script src="mis_credenciales.js" onerror="console.log('[DT] Sin mis_credenciales.js')"></script>
+<script src="dt_config_local.js" onerror="console.log('[DT] Sin dt_config_local.js')"></script>
+<script>/* fusionar credenciales en el preset */
+if (window.DT_CREDS) { window.DT_PRESET = window.DT_PRESET || {};
+  ["telegramToken","telegramChat","finnhubKey"].forEach(function(k){
+    if (window.DT_CREDS[k]) window.DT_PRESET[k] = window.DT_CREDS[k];
+  }); }
+</script>
 <script>
 /* ============================================================
    APLICAR CONFIG LOCAL (dt_config_local.js) A localStorage
