@@ -1,0 +1,29 @@
+name: Heartbeat
+
+on:
+  schedule:
+    - cron: '30 13 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Ping
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: |
+          python - <<'EOF'
+          import os, json, urllib.parse, urllib.request
+          from datetime import datetime, timezone, timedelta
+          t=os.environ.get("TG_TOKEN",""); c=os.environ.get("TG_CHAT","")
+          if not (t and c): raise SystemExit("faltan secrets")
+          mx=datetime.now(timezone(timedelta(hours=-6)))
+          msg=f"[heartbeat] Cron activo - {mx:%d/%m %H:%M} CDMX\nSi ves esto, los workflows programados estan corriendo."
+          u=f"https://api.telegram.org/bot{t}/sendMessage?"+urllib.parse.urlencode({"chat_id":c,"text":msg})
+          print(urllib.request.urlopen(u,timeout=20).read().decode()[:120])
+          EOF
