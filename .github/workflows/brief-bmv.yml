@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: brief-bmv.yml
+  group: brief-bmv
   cancel-in-progress: false
 
 jobs:
@@ -18,9 +18,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
+      - uses: actions/cache/restore@v4
+        with:
+          path: /tmp/dt_alerted.json
+          key: dt-alerted-${{ github.run_id }}
+          restore-keys: dt-alerted-
       - name: Briefing BMV
         env:
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
-        run: python .github/workflows/alerts.py brief-bmv
+        run: python trading.py brief-bmv
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: /tmp/dt_alerted.json
+          key: dt-alerted-${{ github.run_id }}
