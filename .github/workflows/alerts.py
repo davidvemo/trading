@@ -25,6 +25,26 @@ def get(url, timeout=20):
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
+def ahora_cdmx():
+    return datetime.now(timezone(timedelta(hours=-6)))
+
+ETIQUETAS = {
+    "watch":     "MOVIMIENTO DETECTADO",
+    "brief-us":  "BRIEFING US",
+    "brief-bmv": "BRIEFING BMV",
+    "movers":    "MOVERS CON NOTICIA",
+    "positions": "VIGILANCIA DE POSICIONES",
+    "earnings":  "EARNINGS SEMANAL",
+    "test":      "PRUEBA",
+}
+
+def encabezado():
+    """Linea de identificacion que va al inicio de cada mensaje."""
+    mx = ahora_cdmx()
+    et = datetime.now(timezone(timedelta(hours=-4 if 3 <= mx.month <= 10 else -5)))
+    return (f"[{ETIQUETAS.get(MODE, MODE.upper())}]\n"
+            f"{mx:%a %d/%m} - {mx:%H:%M} CDMX  ({et:%H:%M} ET)\n")
+
 def tg(text):
     if not TG_TOKEN or not TG_CHAT:
         print("[!] Sin credenciales de Telegram"); return False
@@ -165,8 +185,9 @@ def briefing(market, top=20):
 
     withnews = sum(1 for it in items if it["news"])
     now = datetime.now(timezone(timedelta(hours=-6)))
-    msg = f"{flag} BRIEFING {title}\n"
-    msg += f"⏰ {now.strftime('%d/%m/%Y %H:%M')} CDMX (abre en ~10 min)\n"
+    msg = encabezado()
+    msg += f"{flag} {title}\n"
+    msg += f"⏰ Mercado abre {'7:30' if 3 <= now.month <= 10 else '8:30'} CDMX\n"
     msg += f"📰 {withnews}/{len(items)} con catalizador\n"
     msg += "━━━━━━━━━━━━━━━━\n\n"
     for i, it in enumerate(items, 1):
@@ -202,7 +223,7 @@ def movers_with_news(min_score=60):
         if not news: continue
         st, tp, sp, tpp = levels(it)
         flag = "🇲🇽" if it["symbol"].endswith(".MX") else "🇺🇸"
-        msg = f"⭐ SCORE {it['score']}/100 + NOTICIA\n\n{flag} {it['symbol'].replace('.MX','')}  ${fmt_price(it['price'])}\n"
+        msg = encabezado() + f"\n⭐ SCORE {it['score']}/100 + NOTICIA\n\n{flag} {it['symbol'].replace('.MX','')}  ${fmt_price(it['price'])}\n"
         msg += f"{it['name']}\nCambio: {fmt_pct(it['chg'])}"
         if it.get("rvol"): msg += f" | RVOL {it['rvol']:.2f}x"
         msg += f"\n🛑 Stop sug: ${fmt_price(st)}  🎯 Target: ${fmt_price(tp)}\n"
@@ -213,7 +234,7 @@ def movers_with_news(min_score=60):
     print(f"[OK] {sent} alertas enviadas")
     if sent == 0:
         mx = datetime.now(timezone(timedelta(hours=-6)))
-        tg(f"[movers] {mx:%H:%M} CDMX - revise {len(items)} tickers, ninguno con score>={min_score} + noticia reciente.")
+        tg(encabezado() + f"\nRevise {len(items)} tickers. Ninguno con score>={min_score} + noticia reciente.")
 
 def earnings(days=7):
     if not FINNHUB:
@@ -232,7 +253,7 @@ def earnings(days=7):
     bydate = {}
     for e in cal: bydate.setdefault(e.get("date"), []).append(e)
     days_es = ["Lunes","Martes","Miercoles","Jueves","Viernes","Sabado","Domingo"]
-    msg = f"📅 EARNINGS PROXIMOS {days} DIAS\n{frm} a {to}\n━━━━━━━━━━━━━━━━\n"
+    msg = encabezado() + f"\n📅 EARNINGS PROXIMOS {days} DIAS\n{frm} a {to}\n━━━━━━━━━━━━━━━━\n"
     for dt in sorted(bydate.keys()):
         try: dd = datetime.strptime(dt, "%Y-%m-%d")
         except Exception: continue
@@ -330,6 +351,89 @@ def monitor_positions():
         print(f"[OK] {tk}: {len(fired)} alertas")
     print(f"[OK] Total {alerts_sent} alertas enviadas")
 
+
+# ============================================================
+#  MODO WATCH: vigilancia continua, mismo criterio que la app
+#  de Windows. Alerta cualquier movimiento >= umbral.
+# ============================================================
+STATE_FILE = "/tmp/dt_alerted.json"
+
+def _load_state():
+    try:
+        d = json.load(open(STATE_FILE, encoding="utf-8"))
+        hoy = ahora_cdmx().strftime("%Y-%m-%d")
+        return d.get("dia") == hoy and d.get("tickers") or {}
+    except Exception:
+        return {}
+
+def _save_state(st):
+    try:
+        json.dump({"dia": ahora_cdmx().strftime("%Y-%m-%d"), "tickers": st},
+                  open(STATE_FILE, "w", encoding="utf-8"))
+    except Exception:
+        pass
+
+def watch(umbral=2.0, cooldown_min=45):
+    """Revisa todo y alerta lo que se mueva >= umbral. Un mensaje por ticker."""
+    mx = ahora_cdmx()
+    if mx.weekday() > 4:
+        print("[i] fin de semana"); return
+
+    items = yahoo_quotes(US + BMV)
+    fuente = "Yahoo"
+    if not items:
+        items = finnhub_quotes(US)
+        fuente = "Finnhub"
+    if not items:
+        print("[!] sin datos de ninguna fuente"); return
+    print(f"[i] {len(items)} tickers desde {fuente}")
+
+    st = _load_state()
+    ahora = time.time()
+    enviados = 0
+    movidos = []
+
+    for it in items:
+        chg = it.get("chg") or 0
+        if abs(chg) < umbral:
+            continue
+        movidos.append(it)
+        tk = it["symbol"]
+        if st.get(tk, 0) + cooldown_min * 60 > ahora:
+            continue
+        st[tk] = ahora
+
+        it["score"] = score(it)
+        news = news_for(tk, hours=48)
+        st_price, tp_price, sp, tpp = levels(it)
+        flecha = "SUBE" if chg > 0 else "BAJA"
+        flag = "MX" if tk.endswith(".MX") else "US"
+
+        msg = encabezado()
+        msg += f"\n{'📈' if chg > 0 else '📉'} {flecha} {tk.replace('.MX','')} {chg:+.2f}%  ({flag})\n"
+        msg += f"{it.get('name','')}\n\n"
+        msg += f"Precio: ${fmt_price(it['price'])}\n"
+        if it.get("rvol"): msg += f"RVOL: {it['rvol']:.2f}x\n"
+        msg += f"Score: {it['score']}/100\n"
+        if it.get("pm") is not None: msg += f"Pre-market: {fmt_pct(it['pm'])}\n"
+        msg += f"\n🛑 Stop sug: ${fmt_price(st_price)} (-{sp:.1f}%)\n"
+        msg += f"🎯 Target sug: ${fmt_price(tp_price)} (+{tpp:.1f}%)\n"
+        if news:
+            msg += f"\n📰 {news[0]['title']}\n{news[0]['url']}\n"
+        else:
+            msg += "\n⚠️ sin catalizador reciente (48h)\n"
+        msg += "\n⚠️ Info objetiva, NO recomendacion."
+        tg(msg)
+        enviados += 1
+        print(f"  [ALERTA] {tk} {chg:+.2f}% score {it['score']}")
+        time.sleep(1)
+
+    _save_state(st)
+    print(f"[OK] {len(movidos)} superaron {umbral}%, {enviados} alertas nuevas enviadas")
+    if not movidos:
+        top = sorted(items, key=lambda x: abs(x.get("chg") or 0), reverse=True)[:3]
+        print("[i] mayores: " + ", ".join(f"{t['symbol']} {t.get('chg',0):+.2f}%" for t in top))
+
 if __name__ == "__main__":
     print(f"[i] Modo: {MODE} | Finnhub: {'si' if FINNHUB else 'no'} | TG: {'si' if TG_TOKEN else 'no'}")
     if MODE == "brief-us":   briefing("us", 20)
@@ -337,5 +441,7 @@ if __name__ == "__main__":
     elif MODE == "movers":    movers_with_news(60)
     elif MODE == "earnings":  earnings(7)
     elif MODE == "positions": monitor_positions()
-    elif MODE == "test":      print("[OK]" if tg("✅ GitHub Actions conectado.\nRecibiras alertas automaticas sin navegador abierto.") else "[FAIL]")
-    else: print("Modos: brief-us | brief-bmv | movers | earnings | positions | test")
+    elif MODE == "watch":     watch(float(os.environ.get("UMBRAL", "2")), int(os.environ.get("COOLDOWN", "45")))
+    elif MODE == "test":
+        print("[OK]" if tg(encabezado() + "\n✅ GitHub Actions conectado.\nRecibiras alertas automaticas sin navegador abierto.") else "[FAIL]")
+    else: print("Modos: brief-us | brief-bmv | movers | earnings | positions | watch | test")
