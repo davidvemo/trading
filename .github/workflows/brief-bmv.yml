@@ -2,8 +2,8 @@ name: Briefing BMV
 
 on:
   schedule:
-    - cron: '8 13 * 3-10 1-5'
-    - cron: '8 14 * 1,2,11,12 1-5'
+    - cron: '54 12 * 3-10 1-5'
+    - cron: '54 13 * 1,2,11,12 1-5'
   workflow_dispatch:
 
 concurrency:
