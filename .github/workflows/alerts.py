@@ -20,6 +20,47 @@ BMV = ["AMXL.MX","WALMEX.MX","FEMSAUBD.MX","GMEXICOB.MX","BIMBOA.MX","CEMEXCPO.M
        "GCARSOA1.MX","CUERVO.MX","BBAJIOO.MX","CHDRAUIB.MX","QUALITAS.MX","FUNO11.MX","PINFRA.MX",
        "KIMBERA.MX","VOLARA.MX","GCC.MX","LACOMERUBC.MX","R.MX","BOLSAA.MX","HERDEZ.MX"]
 
+
+# ============================================================
+#  CONFIG COMPARTIDA: lee el MISMO dt_config_local.js que usa
+#  la app de Windows, para que ambos vigilen lo mismo.
+# ============================================================
+def _leer_config_compartida():
+    import re
+    rutas = ["dt_config_local.js",
+             os.path.join(os.path.dirname(__file__), "..", "..", "dt_config_local.js")]
+    txt = ""
+    for r in rutas:
+        if os.path.exists(r):
+            txt = open(r, encoding="utf-8").read()
+            print(f"[i] config compartida: {r}")
+            break
+    if not txt:
+        print("[i] sin dt_config_local.js, usando listas internas")
+        return {}
+    txt = re.sub(r"/\*.*?\*/", "", txt, flags=re.S)
+    txt = re.sub(r"//.*", "", txt)
+    out = {}
+    for k, v in re.findall(r'(\w+)\s*:\s*(-?\d+(?:\.\d+)?)\s*[,}]', txt):
+        out[k] = float(v) if "." in v else int(v)
+    for k, v in re.findall(r'(\w+)\s*:\s*(true|false)', txt):
+        out[k] = (v == "true")
+    for k, body in re.findall(r'(\w+)\s*:\s*\[(.*?)\]', txt, flags=re.S):
+        arr = re.findall(r'"([^"]+)"', body)
+        if arr: out[k] = arr
+    return out
+
+_SHARED = _leer_config_compartida()
+if _SHARED.get("us"):
+    US = list(dict.fromkeys(_SHARED["us"] + (_SHARED.get("etf") or [])))
+if _SHARED.get("bmv"):
+    BMV = _SHARED["bmv"]
+UMBRAL_CFG   = _SHARED.get("threshold", 2)
+RVOL_CFG     = _SHARED.get("rvolMin", 1.5)
+SCORE_CFG    = _SHARED.get("scoreMin", 60)
+COOLDOWN_CFG = _SHARED.get("cooldownMin", 45)
+print(f"[i] vigilando {len(US)} US + {len(BMV)} BMV | umbral {UMBRAL_CFG}% | cooldown {COOLDOWN_CFG}min")
+
 def get(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -140,14 +181,24 @@ def news_for(sym, hours=48):
         return []
 
 def score(it):
-    s = min(40, abs(it.get("chg") or 0) * 4)
-    s += min(30, (it["rvol"] * 6)) if it.get("rvol") else 5
-    if it.get("hi52") and it.get("lo52") and it.get("price") and it["hi52"] > it["lo52"]:
-        pos = (it["price"] - it["lo52"]) / (it["hi52"] - it["lo52"])
-        s += 15 if pos > 0.9 else 10 if pos > 0.7 else 8 if pos < 0.1 else 3
-    else: s += 5
-    if it.get("pm") is not None: s += min(15, abs(it["pm"]) * 3)
-    return round(min(100, s))
+    """Score 0-100 normalizado sobre los componentes disponibles.
+    Identico al de alertas_windows.py."""
+    partes = []
+    chg = abs(it.get("chg") or 0)
+    partes.append((40, min(1.0, chg / 10.0)))
+    if it.get("rvol"):
+        partes.append((30, min(1.0, it["rvol"] / 5.0)))
+    hi, lo, px = it.get("hi52"), it.get("lo52"), it.get("price")
+    if hi and lo and px and hi > lo:
+        pos = (px - lo) / (hi - lo)
+        v = 1.00 if pos > 0.90 else 0.67 if pos > 0.70 else 0.53 if pos < 0.10 else 0.20
+        partes.append((15, v))
+    if it.get("pm") is not None:
+        partes.append((15, min(1.0, abs(it["pm"]) / 5.0)))
+    peso = sum(w for w, _ in partes)
+    if not peso: return 0
+    it["_factores"] = len(partes)
+    return round(min(100, sum(w * v for w, v in partes) / peso * 100))
 
 def levels(it):
     vol = 2.0
@@ -373,7 +424,9 @@ def _save_state(st):
     except Exception:
         pass
 
-def watch(umbral=2.0, cooldown_min=45):
+def watch(umbral=None, cooldown_min=None):
+    umbral = umbral if umbral else UMBRAL_CFG
+    cooldown_min = cooldown_min if cooldown_min else COOLDOWN_CFG
     """Revisa todo y alerta lo que se mueva >= umbral. Un mensaje por ticker."""
     mx = ahora_cdmx()
     if mx.weekday() > 4:
@@ -441,7 +494,9 @@ if __name__ == "__main__":
     elif MODE == "movers":    movers_with_news(60)
     elif MODE == "earnings":  earnings(7)
     elif MODE == "positions": monitor_positions()
-    elif MODE == "watch":     watch(float(os.environ.get("UMBRAL", "2")), int(os.environ.get("COOLDOWN", "45")))
+    elif MODE == "watch":
+        u = os.environ.get("UMBRAL"); c = os.environ.get("COOLDOWN")
+        watch(float(u) if u else None, int(c) if c else None)
     elif MODE == "test":
         print("[OK]" if tg(encabezado() + "\n✅ GitHub Actions conectado.\nRecibiras alertas automaticas sin navegador abierto.") else "[FAIL]")
     else: print("Modos: brief-us | brief-bmv | movers | earnings | positions | watch | test")
