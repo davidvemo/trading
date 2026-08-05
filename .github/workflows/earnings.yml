@@ -2,7 +2,8 @@ name: Earnings Semanal
 
 on:
   schedule:
-    - cron: '0 13 * * 1'
+    - cron: '0 13 * 3-10 1'
+    - cron: '0 14 * 1,2,11,12 1'
   workflow_dispatch:
 
 concurrency:
