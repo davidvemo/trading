@@ -2,7 +2,8 @@ name: Heartbeat
 
 on:
   schedule:
-    - cron: '30 13 * * 1-5'
+    - cron: '15 13 * 3-10 1-5'
+    - cron: '15 14 * 1,2,11,12 1-5'
   workflow_dispatch:
 
 jobs:
@@ -23,7 +24,7 @@ jobs:
           t=os.environ.get("TG_TOKEN",""); c=os.environ.get("TG_CHAT","")
           if not (t and c): raise SystemExit("faltan secrets")
           mx=datetime.now(timezone(timedelta(hours=-6)))
-          msg=f"[heartbeat] Cron activo - {mx:%d/%m %H:%M} CDMX\nSi ves esto, los workflows programados estan corriendo."
+          msg=f"[HEARTBEAT]\n{mx:%a %d/%m} - {mx:%H:%M} CDMX\n\nCron activo. Si ves esto, los workflows programados estan corriendo."
           u=f"https://api.telegram.org/bot{t}/sendMessage?"+urllib.parse.urlencode({"chat_id":c,"text":msg})
           print(urllib.request.urlopen(u,timeout=20).read().decode()[:120])
           EOF
