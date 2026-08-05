@@ -3894,7 +3894,8 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
 
     // Auto-colapsar / ocultar si ya esta todo configurado
     var cfgNow = readCfg();
-    var ready = !!(cfgNow.telegramToken && cfgNow.telegramChat);
+    var emb = window.DT_CREDS || {};
+    var ready = !!((cfgNow.telegramToken || emb.telegramToken) && (cfgNow.telegramChat || emb.telegramChat));
     if (ready) {
       wrap.style.display = 'none';
       addReopenButton();
