@@ -1,0 +1,54 @@
+name: Vigilancia Continua
+
+on:
+  schedule:
+    # Verano (mar-oct): 6:45 a 14:15 CDMX = 12:45-20:15 UTC, cada 15 min
+    - cron: '0,15,30,45 13,14,15,16,17,18,19,20 * 3-10 1-5'
+    - cron: '45 12 * 3-10 1-5'
+    # Invierno (nov-feb): +1 hora
+    - cron: '0,15,30,45 14,15,16,17,18,19,20,21 * 1,2,11,12 1-5'
+    - cron: '45 13 * 1,2,11,12 1-5'
+  workflow_dispatch:
+    inputs:
+      umbral:
+        description: 'Umbral % de movimiento'
+        required: false
+        default: '2'
+
+concurrency:
+  group: watch
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+
+      # Persistir qué tickers ya se alertaron (evita mensajes repetidos)
+      - name: Restaurar estado
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/dt_alerted.json
+          key: dt-alerted-${{ github.run_id }}
+          restore-keys: |
+            dt-alerted-
+
+      - name: Vigilar mercado
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          UMBRAL: ${{ github.event.inputs.umbral || '2' }}
+          COOLDOWN: '45'
+        run: python .github/workflows/alerts.py watch
+
+      - name: Guardar estado
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/dt_alerted.json
+          key: dt-alerted-${{ github.run_id }}
