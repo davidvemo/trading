@@ -506,7 +506,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
           </div>
         </div>
         <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap">
-          <span style="font-size:10.5px;color:var(--yellow)">⚠️ Esto requiere la pestaña ABIERTA. Para alertas sin navegador usa GitHub Actions (ver archivo GITHUB_ACTIONS_SETUP.md en tu carpeta).</span>
+          <span style="font-size:10.5px;color:var(--yellow)">ℹ️ Esto solo aplica con la pestaña abierta. Las alertas automáticas ya corren en GitHub Actions (llegan a Telegram sin navegador).</span>
           <div style="display:flex;gap:6px">
             <button class="control" onclick="saveAutoConfig()" style="background:var(--green);color:#fff;border:none">💾 Guardar</button>
             <button class="control" onclick="testAutoBriefing()">▶ Probar envío ahora</button>
@@ -4438,7 +4438,7 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
 
   // Botón de prueba: manda ambos briefings ya
   window.testAutoBriefing = async function () {
-    if (!window.notifCfg || !window.notifCfg.telegramToken) { alert('Configura Telegram primero (panel de abajo a la izquierda).'); return; }
+    if (!window.notifCfg || !window.notifCfg.telegramToken) { alert('Telegram no configurado en esta copia. Corre subir.bat para publicar la versión con credenciales.'); return; }
     var doUS = (document.getElementById('auto-brief-us') || {}).checked;
     var doMX = (document.getElementById('auto-brief-bmv') || {}).checked;
     try {
