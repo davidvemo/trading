@@ -4786,5 +4786,110 @@ window.exportPositionsJSON = function () {
 })();
 </script>
 
+
+<script>
+/* ============================================================
+   AUTO-SINCRONIZACION
+   El navegador no puede escribir archivos, pero SI puede descargar.
+   Descarga dt_sync.json cada vez que cambian posiciones o alertas;
+   trading.py lo recoge de Descargas y lo sube al repo.
+   ============================================================ */
+(function () {
+  'use strict';
+  var ultimoHash = localStorage.getItem('dt_sync_hash') || '';
+  var pendiente = null;
+
+  function paquete() {
+    var trades = [], alertas = [], custom = [];
+    try { trades = JSON.parse(localStorage.getItem('dt_trades_v4') || '[]'); } catch (e) {}
+    try { alertas = JSON.parse(localStorage.getItem('dt_price_alerts') || '[]'); } catch (e) {}
+    try { custom = JSON.parse(localStorage.getItem('dt_custom_tickers') || '[]'); } catch (e) {}
+    var cf = {};
+    try { cf = JSON.parse(localStorage.getItem('dt_config_v3') || '{}'); } catch (e) {}
+    return {
+      _generado: new Date().toISOString(),
+      posiciones: trades.filter(function (t) { return t.status === 'open'; }).map(function (t) {
+        return { ticker: t.ticker, qty: t.qty, entry: t.entryPrice,
+                 stop: t.stopLoss || null, target: t.takeProfit || null,
+                 trailing_pct: t.trailingStopPct || null,
+                 proximity_pct: t.proximityPct || 25,
+                 highest: t.highestPrice || t.entryPrice, notas: t.notes || '' };
+      }),
+      alertas_precio: alertas.filter(function (a) { return !a.disparada; }).map(function (a) {
+        return { ticker: a.tk, dir: a.dir, precio: a.px, nota: a.nota || '' };
+      }),
+      watchlist: { us: cf.us || [], etf: cf.etf || [], bmv: cf.bmv || [], crypto: cf.crypto || [] },
+      tickers_agregados: custom
+    };
+  }
+
+  function hash(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+    return String(h);
+  }
+
+  function descargar(obj, nombre) {
+    var b = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = nombre;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+
+  window.dtSync = function (forzar) {
+    var p = paquete();
+    // el hash ignora la fecha para no descargar por el mero paso del tiempo
+    var copia = JSON.parse(JSON.stringify(p)); delete copia._generado;
+    var hh = hash(JSON.stringify(copia));
+    if (!forzar && hh === ultimoHash) return false;
+    ultimoHash = hh;
+    localStorage.setItem('dt_sync_hash', hh);
+    descargar(p, 'dt_sync.json');
+    var n = p.posiciones.length, m = p.alertas_precio.length;
+    console.log('[SYNC] descargado: ' + n + ' posiciones, ' + m + ' alertas');
+    var ind = document.getElementById('sync-ind');
+    if (ind) {
+      ind.textContent = '☁ ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+      ind.title = n + ' posiciones y ' + m + ' alertas exportadas a Descargas';
+      ind.style.color = 'var(--green)';
+      setTimeout(function () { ind.style.color = 'var(--text-faint)'; }, 2500);
+    }
+    return true;
+  };
+
+  // debounce: si cambian varias cosas seguidas, exporta una sola vez
+  function programar() {
+    clearTimeout(pendiente);
+    pendiente = setTimeout(function () { window.dtSync(false); }, 2500);
+  }
+
+  // enganchar a las acciones que modifican datos
+  ['openTrade', 'closeTrade', 'deleteTrade', 'crearAlerta', 'borrarAlerta', 'agregarTicker', 'toggleFav'].forEach(function (fn) {
+    if (typeof window[fn] !== 'function') return;
+    var orig = window[fn];
+    window[fn] = function () { var r = orig.apply(this, arguments); programar(); return r; };
+  });
+
+  // indicador en la barra superior
+  (function () {
+    var ms = document.getElementById('market-status');
+    if (!ms || document.getElementById('sync-ind')) return;
+    var s = document.createElement('span');
+    s.id = 'sync-ind';
+    s.style.cssText = 'font-size:10px;color:var(--text-faint);margin-left:6px;cursor:pointer';
+    s.textContent = '☁ --:--';
+    s.title = 'Click para exportar ahora (posiciones + alertas)';
+    s.onclick = function () { window.dtSync(true); };
+    ms.parentNode.insertBefore(s, ms.nextSibling);
+  })();
+
+  console.log('[SYNC] auto-sincronizacion activa');
+})();
+</script>
+
 </body>
 </html>
