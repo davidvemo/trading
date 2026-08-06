@@ -93,7 +93,7 @@ def mercado_abierto(incluir_premarket=True):
     cur = n.hour*60 + n.minute
     return ini <= cur <= fin
 
-ETIQUETAS = {"watch":"MOVIMIENTO DETECTADO","cierre":"CIERRE DE MERCADO","brief-us":"BRIEFING US","brief-bmv":"BRIEFING BMV",
+ETIQUETAS = {"watch":"MOVIMIENTO DETECTADO","precio":"ALERTA DE PRECIO","cierre":"CIERRE DE MERCADO","brief-us":"BRIEFING US","brief-bmv":"BRIEFING BMV",
              "movers":"MOVERS CON NOTICIA","positions":"VIGILANCIA DE POSICIONES",
              "earnings":"EARNINGS SEMANAL","test":"PRUEBA","alertas":"ALERTA LOCAL"}
 
@@ -388,6 +388,106 @@ def fv(v):
         if abs(v) >= d: return f"{v/d:.2f}{u}"
     return f"{v:.0f}"
 
+
+# ================================================================
+#  SINCRONIZACION con el dashboard
+#  El navegador descarga dt_sync.json a Descargas; aqui lo recogemos.
+# ================================================================
+ALERTS_FILE = os.path.join(BASE, "alertas_precio.json")
+
+def _carpetas_descargas():
+    c = [BASE]
+    home = os.path.expanduser("~")
+    for d in ("Downloads", "Descargas"):
+        pp = os.path.join(home, d)
+        if os.path.isdir(pp): c.append(pp)
+    if os.environ.get("USERPROFILE"):
+        for d in ("Downloads", "Descargas"):
+            pp = os.path.join(os.environ["USERPROFILE"], d)
+            if os.path.isdir(pp) and pp not in c: c.append(pp)
+    return c
+
+def recoger_sync(silencioso=True):
+    """Busca dt_sync.json (incluso dt_sync (1).json) y lo importa."""
+    import glob as _g
+    cands = []
+    for carpeta in _carpetas_descargas():
+        cands += _g.glob(os.path.join(carpeta, "dt_sync*.json"))
+    if not cands: return False
+    cands.sort(key=lambda f: os.path.getmtime(f), reverse=True)
+    nuevo = cands[0]
+    try:
+        d = json.load(open(nuevo, encoding="utf-8"))
+    except Exception as e:
+        if not silencioso: print(f"[!] {os.path.basename(nuevo)} ilegible: {e}")
+        return False
+
+    pos = d.get("posiciones") or []
+    alr = d.get("alertas_precio") or []
+    json.dump({"_importado": datetime.now().isoformat(), "posiciones": pos},
+              open(os.path.join(BASE, "positions.json"), "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+    json.dump({"_importado": datetime.now().isoformat(), "alertas": alr},
+              open(ALERTS_FILE, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+
+    wl = d.get("watchlist") or {}
+    global US, BMV
+    if wl.get("us") or wl.get("etf"):
+        US = list(dict.fromkeys((wl.get("us") or []) + (wl.get("etf") or []))) or US
+    if wl.get("bmv"):
+        BMV = wl["bmv"]
+
+    if not silencioso:
+        print(f"[sync] importado de {os.path.basename(nuevo)}: {len(pos)} posiciones, {len(alr)} alertas, {len(US)} US, {len(BMV)} BMV")
+    for f in cands:
+        try: os.remove(f)
+        except Exception: pass
+    return True
+
+def subir_sync():
+    """Sube positions.json y alertas_precio.json al repo (para GitHub Actions)."""
+    if not cred("github"):
+        print("[!] falta token de GitHub"); return
+    for f in ("positions.json", "alertas_precio.json"):
+        fp = os.path.join(BASE, f)
+        if os.path.exists(fp):
+            _subir(f, open(fp, "rb").read(), f"sync: {f}")
+
+def _leer_alertas_precio():
+    for r in (ALERTS_FILE, "alertas_precio.json"):
+        try: return json.load(open(r, encoding="utf-8")).get("alertas") or []
+        except Exception: continue
+    return []
+
+def alertas_precio(quotes=None, local=False):
+    """Avisa cuando un ticker cruza el precio objetivo que pusiste en el dashboard."""
+    al = _leer_alertas_precio()
+    if not al: return 0
+    quotes = quotes or {}
+    faltan = [a["ticker"] for a in al if a.get("ticker") and a["ticker"] not in quotes]
+    if faltan:
+        for q in (q_yahoo(faltan) or q_yahoo_chart(faltan)):
+            quotes[q["symbol"]] = q
+    n = 0; ahora = time.time()
+    for a in al:
+        tk = a.get("ticker"); q = quotes.get(tk)
+        if not q or not a.get("precio"): continue
+        px, obj, direc = q["price"], float(a["precio"]), a.get("dir", "above")
+        cumple = px >= obj if direc == "above" else px <= obj
+        if not cumple: continue
+        k = f"px_{tk}_{direc}_{obj}"
+        if _sent.get(k, 0) + 3600 > ahora: continue
+        _sent[k] = ahora
+        titulo = f"🔔 ALERTA DE PRECIO - {tk.replace('.MX','')}"
+        cuerpo = (("Subio a " if direc == "above" else "Bajo a ") + f"${fp(px)}"
+                  + f" (objetivo ${fp(obj)})"
+                  + (f"\n{fpc(q.get('chg'))} hoy" if q.get("chg") is not None else "")
+                  + (f"\n{a['nota']}" if a.get("nota") else ""))
+        if local: notificar(titulo, cuerpo, True, "precio")
+        else: telegram(encabezado("precio") + "\n" + titulo + "\n" + cuerpo)
+        print(f"  [PRECIO] {tk} cruzo ${obj}")
+        n += 1; time.sleep(0.8)
+    return n
+
 # ================================================================
 #  MODO WATCH  (el que replica la app de Windows)
 # ================================================================
@@ -425,6 +525,7 @@ def watch(umbral=None, cooldown=None, local=False):
     cooldown = (cooldown if cooldown else CFG["cooldown_min"]) * 60
     if CFG["solo_horario"] and not mercado_abierto():
         print(f"[{mx_now():%H:%M}] mercado cerrado"); return 0
+    if not os.environ.get("GITHUB_ACTIONS"): recoger_sync(silencioso=False)
     items = obtener_datos()
     if not items:
         print("[!] ninguna fuente respondio")
@@ -449,7 +550,9 @@ def watch(umbral=None, cooldown=None, local=False):
     if not movidos:
         top = sorted(items, key=lambda x: abs(x.get("chg") or 0), reverse=True)[:3]
         print("   mayores: " + ", ".join(f"{t['symbol'].replace('.MX','')} {t.get('chg',0):+.2f}% (sc {score(t)})" for t in top))
-    enviados += posiciones({i["symbol"]: i for i in items}, local=local)
+    qm = {i["symbol"]: i for i in items}
+    enviados += posiciones(qm, local=local)
+    enviados += alertas_precio(qm, local=local)
     return enviados
 
 
@@ -919,8 +1022,10 @@ def deploy():
     print("    Pages funciona sin pedirtelas. Ojo: en repo publico siguen")
     print("    siendo legibles para quien las decodifique.")
     _subir(HTML, body, "actualizar dashboard")
-    pj = os.path.join(BASE, "positions.json")
-    if os.path.exists(pj): _subir("positions.json", open(pj,"rb").read(), "posiciones")
+    recoger_sync(silencioso=False)
+    for f in ("positions.json", "alertas_precio.json"):
+        fp = os.path.join(BASE, f)
+        if os.path.exists(fp): _subir(f, open(fp, "rb").read(), f"sync: {f}")
     c, _ = _gh("GET", f"/repos/{REPO}/pages")
     print(f"\nPages: {'activo' if c == 200 else 'ACTIVALO en https://github.com/'+REPO+'/settings/pages (main / root)'}")
     print(f"URL: https://davidvemo.github.io/trading/")
@@ -1025,9 +1130,14 @@ def loop_local():
     notificar("Day Trading Pro iniciado",
               f"Vigilando {len(US)+len(BMV)} tickers cada {CFG['intervalo_min']} min\n"
               f"Umbral {CFG['umbral_pct']}% | canales: {' + '.join(canales) or 'ninguno'}")
+    ciclo = 0
     while True:
         try:
             watch(local=True)
+            ciclo += 1
+            if ciclo % 10 == 0 and cred("github"):
+                try: subir_sync()
+                except Exception: pass
         except KeyboardInterrupt:
             print("\nDetenido."); break
         except Exception as e:
@@ -1044,11 +1154,12 @@ if __name__ == "__main__":
     elif modo == "brief-us":  briefing("us")
     elif modo == "brief-bmv": briefing("bmv")
     elif modo == "movers":    movers()
-    elif modo == "positions": print(f"[OK] {posiciones()} alertas")
+    elif modo == "positions": print(f"[OK] {posiciones() + alertas_precio()} alertas")
     elif modo == "earnings":  earnings()
     elif modo == "check":     check()
     elif modo == "test":      print("[OK]" if telegram(encabezado("test")+"\n\u2705 Conectado.") else "[FAIL]")
     # utilidades locales
+    elif modo == "sync":      recoger_sync(silencioso=False); subir_sync()
     elif modo == "diag":      diag()
     elif modo == "subir":     deploy(); print(); setup()
     elif modo == "limpiar":   limpiar()
