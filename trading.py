@@ -718,6 +718,72 @@ def earnings(dias=7):
     msg += "\n⚠️ Earnings mueven 10-40%. Muchos traders evitan operar justo antes."
     print("[OK]" if telegram(msg) else "[FAIL]")
 
+
+def check():
+    """Diagnostico que corre DENTRO de GitHub Actions y reporta a Telegram."""
+    import platform
+    lineas = []
+    lineas.append("[CHECK REMOTO]")
+    lineas.append(f"{mx_now():%a %d/%m %H:%M} CDMX")
+    lineas.append(f"python {platform.python_version()} | {'GitHub Actions' if os.environ.get('GITHUB_ACTIONS') else 'local'}")
+    lineas.append("")
+    lineas.append("SECRETS recibidos:")
+    for env, lbl in (("FINNHUB_KEY","Finnhub"),("TG_TOKEN","TG token"),("TG_CHAT","TG chat")):
+        v = os.environ.get(env, "")
+        lineas.append(f"  {lbl}: {'OK (' + str(len(v)) + ' chars)' if v else 'VACIO <<<'}")
+    lineas.append("")
+    lineas.append("CONFIG:")
+    lineas.append(f"  {len(US)} tickers US, {len(BMV)} BMV")
+    lineas.append(f"  umbral {CFG['umbral_pct']}% | top briefing {CFG['top_briefing']}")
+    h, m = apertura_cdmx()
+    lineas.append(f"  apertura {h}:{m:02d} CDMX | {'verano' if es_verano() else 'invierno'}")
+    lineas.append(f"  mercado abierto ahora: {'SI' if mercado_abierto() else 'NO'}")
+    lineas.append("")
+    lineas.append("FUENTES DE DATOS:")
+    pruebas = [("Yahoo v7", lambda: q_yahoo(["AAPL","MSFT","NVDA"])),
+               ("Finnhub", lambda: q_finnhub(["AAPL","MSFT","NVDA"])),
+               ("Stooq", lambda: q_stooq(["AAPL","MSFT","NVDA"])),
+               ("Yahoo chart US", lambda: q_yahoo_chart(["AAPL"])),
+               ("Yahoo chart BMV", lambda: q_yahoo_chart(["AMXL.MX"]))]
+    for nombre, fn in pruebas:
+        try:
+            r = fn()
+            lineas.append(f"  {nombre}: {'OK -> ' + ', '.join(f'{x[chr(34)+chr(115)+chr(121)+chr(109)+chr(98)+chr(111)+chr(108)+chr(34)]}' for x in r[:3]) if r else 'SIN DATOS'}")
+        except Exception as e:
+            lineas.append(f"  {nombre}: ERROR {str(e)[:60]}")
+    lineas.append("")
+    lineas.append("CASCADA COMPLETA:")
+    try:
+        items = obtener_datos(verbose=False)
+        us_n = len([i for i in items if not i["symbol"].endswith(".MX")])
+        mx_n = len([i for i in items if i["symbol"].endswith(".MX")])
+        lineas.append(f"  total {len(items)} tickers ({us_n} US, {mx_n} BMV)")
+        if items:
+            top = sorted(items, key=lambda x: abs(x.get("chg") or 0), reverse=True)[:3]
+            for t in top:
+                lineas.append(f"    {t['symbol']} ${fp(t['price'])} {fpc(t.get('chg'))}")
+    except Exception as e:
+        lineas.append(f"  ERROR: {str(e)[:120]}")
+    lineas.append("")
+    lineas.append("NOTICIAS (prueba con NVDA):")
+    try:
+        nw = noticias("NVDA")
+        lineas.append(f"  {len(nw)} encontradas" + (f": {nw[0]['t'][:50]}" if nw else ""))
+    except Exception as e:
+        lineas.append(f"  ERROR {str(e)[:60]}")
+    lineas.append("")
+    lineas.append("EARNINGS (prueba 7 dias):")
+    try:
+        e7 = earnings_semana(7)
+        lineas.append(f"  {len(e7)} empresas en el calendario")
+    except Exception as e:
+        lineas.append(f"  ERROR {str(e)[:60]}")
+
+    txt = "\n".join(lineas)
+    print(txt)
+    ok = telegram(txt)
+    print("\n[telegram]", "ENVIADO" if ok else "FALLO")
+
 # ================================================================
 #  GITHUB  (deploy + workflows)
 # ================================================================
@@ -766,13 +832,15 @@ def _self_sin_creds():
     return src.encode("utf-8")
 
 def _wf(nombre, titulo, crons, modo):
-    cr = "\n".join(f"    - cron: '{c}'" for c in crons)
+    if crons:
+        cr = "\n".join(f"    - cron: '{c}'" for c in crons)
+        disparo = f"  schedule:\n{cr}\n  workflow_dispatch:"
+    else:
+        disparo = "  workflow_dispatch:"
     return f"""name: {titulo}
 
 on:
-  schedule:
-{cr}
-  workflow_dispatch:
+{disparo}
 
 concurrency:
   group: {nombre}
@@ -815,6 +883,7 @@ WORKFLOWS = {
     "movers":    ("Movers con Noticia", ["0 16,18,20 * 3-10 1-5", "0 17,19,21 * 1,2,11,12 1-5"]),
     "earnings":  ("Earnings Semanal", ["0 13 * 3-10 1", "0 14 * 1,2,11,12 1"]),
     "cierre":    ("Resumen de Cierre", ["10 20 * 3-10 1-5", "10 21 * 1,2,11,12 1-5"]),
+    "check":     ("Check Remoto (manual)", []),
 }
 
 def _html_para_subir():
@@ -977,6 +1046,7 @@ if __name__ == "__main__":
     elif modo == "movers":    movers()
     elif modo == "positions": print(f"[OK] {posiciones()} alertas")
     elif modo == "earnings":  earnings()
+    elif modo == "check":     check()
     elif modo == "test":      print("[OK]" if telegram(encabezado("test")+"\n\u2705 Conectado.") else "[FAIL]")
     # utilidades locales
     elif modo == "diag":      diag()
