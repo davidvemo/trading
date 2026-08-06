@@ -685,6 +685,55 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
     </div>
 
     <div class="tab-panel" data-panel="watchlist">
+      <div class="section" style="border-color:rgba(79,140,255,.4)">
+        <div class="section-header" style="background:linear-gradient(90deg,rgba(79,140,255,.15),rgba(22,199,132,.05))">
+          <h2 style="color:var(--blue)">🔍 Agregar Ticker</h2>
+          <span class="meta">busca y agrega cualquier accion, ETF o cripto</span>
+        </div>
+        <div style="padding:14px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:160px">
+              <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ticker o nombre</div>
+              <input type="text" id="add-q" placeholder="ej: NVDA, tesla, AMXL, BTCUSDT"
+                style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:5px;font-size:13px">
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Mercado</div>
+              <select id="add-mkt" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:5px;font-size:13px">
+                <option value="auto">Auto</option><option value="us">US</option>
+                <option value="bmv">BMV (.MX)</option><option value="crypto">Cripto</option>
+              </select>
+            </div>
+            <button class="control" onclick="buscarTicker()" style="background:var(--blue);color:#fff;border:none;padding:8px 16px">🔍 Buscar</button>
+          </div>
+          <div id="add-res" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <div class="section" style="border-color:rgba(245,176,65,.4)">
+        <div class="section-header" style="background:linear-gradient(90deg,rgba(245,176,65,.15),rgba(234,57,67,.05))">
+          <h2 style="color:var(--yellow)">🔔 Alertas de Precio <span class="count" id="count-alertas">0</span></h2>
+          <span class="meta">avisame cuando toque un precio</span>
+        </div>
+        <div style="padding:14px;background:var(--bg-card-2);border-bottom:1px solid var(--border)">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;align-items:flex-end">
+            <div><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Ticker</div>
+              <input type="text" id="al-tk" placeholder="NVDA" style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:5px;font-size:12px"></div>
+            <div><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Condicion</div>
+              <select id="al-dir" style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px;border-radius:5px;font-size:12px">
+                <option value="above">Sube a o mas</option><option value="below">Baja a o menos</option>
+              </select></div>
+            <div><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Precio</div>
+              <input type="number" id="al-px" step="0.01" placeholder="185.00" style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:5px;font-size:12px"></div>
+            <div><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;margin-bottom:4px">Nota</div>
+              <input type="text" id="al-nota" placeholder="resistencia" style="width:100%;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:5px;font-size:12px"></div>
+            <button class="control" onclick="crearAlerta()" style="background:var(--yellow);color:var(--bg);border:none;font-weight:600;padding:8px 14px">+ Crear</button>
+          </div>
+          <div id="al-hint" style="font-size:10.5px;color:var(--text-faint);margin-top:8px"></div>
+        </div>
+        <div id="body-alertas"></div>
+      </div>
+
       <div class="section">
         <div class="section-header"><h2>⭐ Mi Watchlist</h2><span class="meta">Tus tickers favoritos</span></div>
         <div id="body-watchlist"><div class="loading"><span class="spinner"></span>Cargando…</div></div>
@@ -4527,6 +4576,213 @@ window.exportPositionsJSON = function () {
   if (btn) btn.addEventListener('click', function () { setTimeout(tag, 120); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(tag, 500); });
   else setTimeout(tag, 500);
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   AGREGAR TICKERS + ALERTAS DE PRECIO
+   ============================================================ */
+(function () {
+  'use strict';
+  var AK = 'dt_price_alerts';
+  var CK = 'dt_custom_tickers';
+
+  function getAlertas() { try { return JSON.parse(localStorage.getItem(AK) || '[]'); } catch (e) { return []; } }
+  function setAlertas(a) { localStorage.setItem(AK, JSON.stringify(a)); }
+  function getCustom() { try { return JSON.parse(localStorage.getItem(CK) || '[]'); } catch (e) { return []; } }
+  function setCustom(c) { localStorage.setItem(CK, JSON.stringify(c)); }
+
+  function normaliza(q, mkt) {
+    q = (q || '').trim().toUpperCase();
+    if (!q) return '';
+    if (mkt === 'bmv' && !q.endsWith('.MX')) return q + '.MX';
+    if (mkt === 'crypto' && !q.endsWith('USDT')) return q + 'USDT';
+    return q;
+  }
+
+  // ---------- buscar ----------
+  window.buscarTicker = async function () {
+    var q = document.getElementById('add-q').value.trim();
+    var mkt = document.getElementById('add-mkt').value;
+    var res = document.getElementById('add-res');
+    if (!q) { res.innerHTML = ''; return; }
+    res.innerHTML = '<div class="loading"><span class="spinner"></span>Buscando…</div>';
+
+    var candidatos = [];
+    // 1) busqueda por nombre en Yahoo
+    try {
+      var url = 'https://query1.finance.yahoo.com/v1/finance/search?q=' + encodeURIComponent(q) + '&quotesCount=8&newsCount=0';
+      var d = await fetchWithProxy(url, { timeout: 9000 });
+      (d && d.quotes || []).forEach(function (x) {
+        if (!x.symbol) return;
+        candidatos.push({ sym: x.symbol, nombre: x.shortname || x.longname || '', tipo: x.quoteType || '', bolsa: x.exchDisp || x.exchange || '' });
+      });
+    } catch (e) {}
+    // 2) el texto tal cual (por si es un ticker exacto que la busqueda no devuelve)
+    var directo = normaliza(q, mkt);
+    if (directo && !candidatos.some(function (c) { return c.sym === directo; })) {
+      candidatos.unshift({ sym: directo, nombre: '(ticker directo)', tipo: mkt === 'crypto' ? 'CRYPTO' : '', bolsa: '' });
+    }
+    if (!candidatos.length) {
+      res.innerHTML = '<div class="empty-state" style="padding:14px">Sin resultados. Escribe el ticker exacto y elige el mercado.</div>';
+      return;
+    }
+
+    // verificar precio de cada candidato (en paralelo, max 6)
+    var verif = await Promise.all(candidatos.slice(0, 6).map(async function (c) {
+      try {
+        if ((c.tipo || '').toUpperCase() === 'CRYPTOCURRENCY' || c.sym.endsWith('USDT')) {
+          var s = c.sym.replace('-USD', 'USDT').replace('.', '');
+          var r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=' + s);
+          if (r.ok) { var j = await r.json(); c.precio = parseFloat(j.lastPrice); c.chg = parseFloat(j.priceChangePercent); c.sym = s; c.mkt = 'crypto'; }
+        } else {
+          var u = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(c.sym) + '?range=1d&interval=1d';
+          var dd = await fetchWithProxy(u, { timeout: 8000 });
+          var m = dd && dd.chart && dd.chart.result && dd.chart.result[0] && dd.chart.result[0].meta;
+          if (m && m.regularMarketPrice != null) {
+            c.precio = m.regularMarketPrice;
+            var pv = m.previousClose || m.chartPreviousClose;
+            c.chg = pv ? ((c.precio - pv) / pv * 100) : null;
+            c.nombre = c.nombre || m.shortName || c.sym;
+            c.mkt = c.sym.endsWith('.MX') ? 'bmv' : 'us';
+          }
+        }
+      } catch (e) {}
+      return c;
+    }));
+
+    res.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Ticker</th><th>Nombre</th><th>Bolsa</th>' +
+      '<th class="right">Precio</th><th class="right">Cambio</th><th></th></tr></thead><tbody>' +
+      verif.map(function (c) {
+        var ok = c.precio != null;
+        return '<tr>' +
+          '<td class="symbol">' + c.sym + '</td>' +
+          '<td class="name">' + (c.nombre || '–') + '</td>' +
+          '<td style="font-size:11px;color:var(--text-dim)">' + (c.bolsa || (c.mkt === 'crypto' ? 'Binance' : '–')) + '</td>' +
+          '<td class="right">' + (ok ? '$' + fmtPrice(c.precio) : '<span style="color:var(--red)">no encontrado</span>') + '</td>' +
+          '<td class="right">' + (c.chg != null ? '<span class="change ' + (c.chg >= 0 ? 'up' : 'down') + '">' + fmtPct(c.chg) + '</span>' : '–') + '</td>' +
+          '<td class="right">' + (ok
+            ? '<button class="control" style="padding:4px 10px;font-size:11px;background:var(--green);color:#fff;border:none" onclick="agregarTicker(\'' + c.sym + '\',\'' + (c.mkt || 'us') + '\')">+ Watchlist</button>'
+            : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  };
+
+  // ---------- agregar a watchlist + config ----------
+  window.agregarTicker = function (sym, mkt) {
+    var cf = {};
+    try { cf = JSON.parse(localStorage.getItem('dt_config_v3') || '{}'); } catch (e) {}
+    var lista = mkt === 'bmv' ? 'bmv' : mkt === 'crypto' ? 'crypto' : 'us';
+    cf[lista] = cf[lista] || [];
+    if (cf[lista].indexOf(sym) === -1) cf[lista].push(sym);
+    localStorage.setItem('dt_config_v3', JSON.stringify(cf));
+
+    var c = getCustom();
+    if (!c.some(function (x) { return x.sym === sym; })) { c.push({ sym: sym, mkt: mkt }); setCustom(c); }
+
+    // marcar como favorito
+    try {
+      var favs = JSON.parse(localStorage.getItem('dt_favs') || '[]');
+      if (favs.indexOf(sym) === -1) { favs.push(sym); localStorage.setItem('dt_favs', JSON.stringify(favs)); }
+      if (window.favorites) window.favorites.add(sym);
+    } catch (e) {}
+
+    document.getElementById('al-tk').value = sym;
+    alert(sym + ' agregado a tu watchlist y marcado como favorito.\n\nSe empieza a monitorear en la siguiente actualizacion.\n\nPara alertas sin navegador, exporta positions.json y subelo al repo.');
+    if (typeof updateAll === 'function') updateAll();
+  };
+
+  // ---------- alertas de precio ----------
+  window.crearAlerta = function () {
+    var tk = (document.getElementById('al-tk').value || '').trim().toUpperCase();
+    var dir = document.getElementById('al-dir').value;
+    var px = parseFloat(document.getElementById('al-px').value);
+    var nota = (document.getElementById('al-nota').value || '').trim();
+    if (!tk || !px || px <= 0) { alert('Falta el ticker o el precio.'); return; }
+    var a = getAlertas();
+    a.push({ id: 'A' + Date.now(), tk: tk, dir: dir, px: px, nota: nota, creada: Date.now(), disparada: null });
+    setAlertas(a);
+    document.getElementById('al-px').value = '';
+    document.getElementById('al-nota').value = '';
+    renderAlertas();
+  };
+
+  window.borrarAlerta = function (id) {
+    setAlertas(getAlertas().filter(function (x) { return x.id !== id; }));
+    renderAlertas();
+  };
+
+  window.renderAlertas = function () {
+    var a = getAlertas();
+    var cont = document.getElementById('body-alertas');
+    var cnt = document.getElementById('count-alertas');
+    if (cnt) cnt.textContent = a.length;
+    if (!cont) return;
+    if (!a.length) {
+      cont.innerHTML = '<div class="empty-state" style="padding:18px"><span class="em">🔔</span>Sin alertas. Crea una arriba: te aviso cuando el precio cruce el nivel.</div>';
+      return;
+    }
+    cont.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Ticker</th><th>Condicion</th>' +
+      '<th class="right">Objetivo</th><th class="right">Actual</th><th class="right">Falta</th><th>Estado</th><th>Nota</th><th></th></tr></thead><tbody>' +
+      a.map(function (x) {
+        var it = (typeof findCurrentPrice === 'function') ? findCurrentPrice(x.tk, x.tk.endsWith('.MX') ? 'bmv' : x.tk.endsWith('USDT') ? 'crypto' : 'us') : null;
+        var actual = it ? it.price : null;
+        var falta = actual != null ? ((x.px - actual) / actual * 100) : null;
+        var cumple = actual != null && (x.dir === 'above' ? actual >= x.px : actual <= x.px);
+        var estado = x.disparada ? '<span class="change up">✓ disparada</span>'
+                   : cumple ? '<span class="change alert-up">¡AHORA!</span>'
+                   : actual == null ? '<span style="color:var(--text-faint);font-size:11px">sin precio</span>'
+                   : '<span style="color:var(--text-dim);font-size:11px">esperando</span>';
+        return '<tr' + (cumple && !x.disparada ? ' style="background:rgba(22,199,132,.08)"' : '') + '>' +
+          '<td class="symbol">' + x.tk.replace('.MX','') + '</td>' +
+          '<td style="font-size:11.5px">' + (x.dir === 'above' ? '📈 sube a' : '📉 baja a') + '</td>' +
+          '<td class="right" style="font-weight:600">$' + fmtPrice(x.px) + '</td>' +
+          '<td class="right">' + (actual != null ? '$' + fmtPrice(actual) : '–') + '</td>' +
+          '<td class="right" style="color:var(--text-dim);font-size:11.5px">' + (falta != null ? (falta >= 0 ? '+' : '') + falta.toFixed(2) + '%' : '–') + '</td>' +
+          '<td>' + estado + '</td>' +
+          '<td class="notes-cell">' + (x.nota || '–') + '</td>' +
+          '<td class="right"><button class="btn-delete" onclick="borrarAlerta(\'' + x.id + '\')">🗑</button></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  };
+
+  // ---------- revisar y notificar ----------
+  function revisarAlertas() {
+    var a = getAlertas(), cambio = false;
+    a.forEach(function (x) {
+      if (x.disparada) return;
+      var mkt = x.tk.endsWith('.MX') ? 'bmv' : x.tk.endsWith('USDT') ? 'crypto' : 'us';
+      var it = (typeof findCurrentPrice === 'function') ? findCurrentPrice(x.tk, mkt) : null;
+      if (!it || it.price == null) return;
+      var cumple = x.dir === 'above' ? it.price >= x.px : it.price <= x.px;
+      if (!cumple) return;
+      x.disparada = Date.now(); cambio = true;
+      var titulo = '🔔 ALERTA DE PRECIO · ' + x.tk.replace('.MX','');
+      var cuerpo = (x.dir === 'above' ? 'Subio a ' : 'Bajo a ') + '$' + fmtPrice(it.price)
+                 + ' (objetivo $' + fmtPrice(x.px) + ')'
+                 + (it.changePct != null ? ' · ' + fmtPct(it.changePct) + ' hoy' : '')
+                 + (x.nota ? '\n' + x.nota : '');
+      if (window.Notifs) window.Notifs.send(titulo, cuerpo, { ticker: x.tk, eventType: 'precio_' + x.id, important: true, soundType: 'success' });
+    });
+    if (cambio) { setAlertas(a); renderAlertas(); }
+  }
+
+  // engancharse al ciclo de actualizacion
+  if (typeof renderAll === 'function') {
+    var _o = renderAll;
+    renderAll = function () { _o(); try { revisarAlertas(); if (currentTab === 'watchlist') renderAlertas(); } catch (e) {} };
+  }
+  setInterval(revisarAlertas, 60000);
+
+  document.querySelectorAll('.tab[data-tab="watchlist"]').forEach(function (t) {
+    t.addEventListener('click', function () { setTimeout(renderAlertas, 60); });
+  });
+  var q = document.getElementById('add-q');
+  if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') buscarTicker(); });
+  var hint = document.getElementById('al-hint');
+  if (hint) hint.innerHTML = 'Las alertas se revisan cada minuto con la pestaña abierta. ' +
+    'Para que lleguen sin navegador, expórtalas junto con tus posiciones (botón ☁ positions.json en la Bitácora).';
+  renderAlertas();
 })();
 </script>
 
