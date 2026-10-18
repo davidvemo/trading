@@ -422,6 +422,209 @@ table.edu td:first-child{color:var(--text);font-weight:500;white-space:nowrap}
 .est-box .v{font-size:17px;font-weight:600;margin-top:3px;letter-spacing:-.3px}
 .est-box .s{font-size:10.5px;color:var(--text-faint);margin-top:2px}
 
+
+/* ================================================================
+   SKIN EJECUTIVO — negros, grises y azules
+   ================================================================ */
+:root{
+  --bg:#09090b;
+  --bg-card:#131316;
+  --bg-card-2:#18181c;
+  --bg-input:#0d0d10;
+  --border:#232328;
+  --border-soft:#1b1b20;
+  --text:#f2f2f4;
+  --text-dim:#8c8c95;
+  --text-faint:#5a5a63;
+  --blue:#4a9eff;
+  --blue-dim:#2f6fc4;
+  --blue-bg:rgba(74,158,255,.10);
+  --green:#4a9eff;              /* positivo = azul */
+  --green-bg:rgba(74,158,255,.10);
+  --green-bg-s:rgba(74,158,255,.16);
+  --red:#c96a6a;                /* negativo = rojo apagado */
+  --red-bg:rgba(201,106,106,.10);
+  --red-bg-s:rgba(201,106,106,.16);
+  --yellow:#9a9aa4;             /* neutro gris */
+  --yellow-bg:rgba(154,154,164,.10);
+  --purple:#6f8fbf;
+  --purple-bg:rgba(111,143,191,.10);
+  --r:6px;
+}
+
+body{padding:26px 30px;background:var(--bg);
+  font-feature-settings:"tnum" on,"lnum" on}
+
+/* ---------- encabezado ---------- */
+.header{border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:22px;align-items:flex-start}
+.header h1{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
+.header h1 .accent{color:var(--blue);-webkit-text-fill-color:var(--blue)}
+.header .subtitle{display:block;font-size:10.5px;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:1.4px;margin-top:7px;font-weight:500}
+.controls{gap:5px}
+.control{background:transparent;border:1px solid var(--border);color:var(--text-dim);
+  padding:5px 11px;font-size:11px;border-radius:var(--r);font-weight:500}
+.control:hover{border-color:var(--blue);color:var(--text);background:transparent}
+.control.active{background:var(--blue);border-color:var(--blue);color:#0a0a0c;font-weight:600}
+.market-status{background:transparent;border:1px solid var(--border);font-size:10.5px;padding:5px 10px}
+
+/* ---------- diagnostico ---------- */
+.diag{background:transparent;border:none;border-bottom:1px solid var(--border-soft);
+  border-radius:0;padding:0 0 12px;margin-bottom:20px;font-size:10px}
+.diag .pill{background:transparent;border:1px solid var(--border-soft);padding:2px 8px;
+  border-radius:20px;color:var(--text-dim)}
+.diag .lbl{font-size:9px;letter-spacing:1.1px;color:var(--text-faint)}
+
+/* ---------- tarjetas tipo reporte ejecutivo ---------- */
+.summary{grid-template-columns:repeat(auto-fit,minmax(192px,1fr));gap:12px;margin-bottom:22px}
+.summary-card{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--blue);
+  border-radius:var(--r);padding:15px 17px 16px}
+.summary-card.red{border-left-color:var(--red)}
+.summary-card.green{border-left-color:var(--blue)}
+.summary-card.yellow,.summary-card.purple{border-left-color:var(--text-faint)}
+.summary-card .label{font-size:9px;letter-spacing:1.2px;color:var(--text-dim);
+  text-transform:uppercase;font-weight:600;line-height:1.4}
+.summary-card .value{font-size:29px;font-weight:700;letter-spacing:-1.2px;margin-top:9px;
+  line-height:1;color:var(--text)}
+.summary-card.green .value,.summary-card.red .value,
+.summary-card.yellow .value,.summary-card.blue .value,.summary-card.purple .value{color:var(--text)}
+.summary-card .sub{font-size:10.5px;color:var(--text-faint);margin-top:8px;
+  padding-top:8px;border-top:1px solid var(--border-soft);letter-spacing:.2px}
+
+/* ---------- filtros ---------- */
+.filters{background:transparent;border:1px solid var(--border);padding:11px 15px;
+  margin-bottom:20px;gap:18px}
+.filter-group label{font-size:9.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--text-faint);font-weight:600}
+.filter-group input{background:var(--bg-input);border:1px solid var(--border);
+  padding:5px 8px;font-size:12px;width:62px}
+.filter-group input:focus{border-color:var(--blue)}
+
+/* ---------- tabs con subrayado ---------- */
+.tabs{background:transparent;border:none;border-bottom:1px solid var(--border);
+  border-radius:0;padding:0;margin-bottom:22px;gap:0}
+.tab{background:transparent;border:none;border-bottom:2px solid transparent;
+  border-radius:0;padding:11px 16px;font-size:12.5px;color:var(--text-dim);font-weight:500}
+.tab:hover{color:var(--text);background:transparent}
+.tab.active{background:transparent;color:var(--text);border-bottom-color:var(--blue);font-weight:600}
+
+/* ---------- secciones ---------- */
+.section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px}
+.section-header{background:transparent;border-bottom:1px solid var(--border);padding:13px 17px}
+.section-header h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--text)}
+.section-header .meta{font-size:10px;color:var(--text-faint);letter-spacing:.2px}
+.section-header .count{background:transparent;border:1px solid var(--border);
+  color:var(--text-dim);font-size:9.5px;padding:1px 7px;border-radius:20px}
+.section.premarket,.section.score-section,.section.fund-section{border-color:var(--border)}
+.section.premarket .section-header,.section.score-section .section-header,
+.section.fund-section .section-header{background:transparent}
+.section.premarket h2,.section.score-section h2,.section.fund-section h2{color:var(--blue)}
+
+/* ---------- tablas ---------- */
+.table-wrap{max-height:none}
+table{font-size:12px}
+th{background:transparent;border-bottom:1px solid var(--border);padding:9px 14px;
+  font-size:9px;letter-spacing:1.1px;color:var(--text-faint);font-weight:600}
+td{padding:9px 14px;border-bottom:1px solid var(--border-soft);font-size:12px}
+tr:hover{background:rgba(255,255,255,.015)}
+td.symbol{font-weight:600;letter-spacing:-.1px}
+td.name{color:var(--text-faint);font-size:11px}
+.change{background:transparent;padding:0;font-weight:600;font-size:12px;border-radius:0}
+.change.up{color:var(--blue)}
+.change.down{color:var(--red)}
+.change.alert-up{background:transparent;color:var(--blue);box-shadow:none;font-weight:700}
+.change.alert-down{background:transparent;color:var(--red);box-shadow:none;font-weight:700}
+.rvol{background:transparent;padding:0;font-size:11.5px;color:var(--text-dim);font-weight:500}
+.rvol.med{color:var(--text-dim)}
+.rvol.high{color:var(--blue)}
+.rvol.extreme{color:var(--blue);font-weight:700;box-shadow:none;background:transparent}
+.score-pill{background:transparent;padding:0;gap:6px;font-size:11.5px;font-weight:600;color:var(--text-dim)}
+.score-pill .bar{width:34px;height:2px;background:var(--border)}
+.score-pill.tier-3,.score-pill.tier-4{color:var(--blue)}
+.score-pill.tier-0,.score-pill.tier-1{color:var(--text-faint)}
+.range-bar{background:var(--border);height:2px;width:46px}
+.range-bar .mark{background:var(--blue);width:2px;height:7px;top:-2.5px}
+.star-btn{font-size:12px}
+
+/* ---------- vacios y estados ---------- */
+.empty-state,.empty-journal{padding:30px 20px;font-size:11.5px;color:var(--text-faint)}
+.empty-state .em,.empty-journal .big{display:block;font-size:18px;opacity:.25;margin-bottom:8px}
+.loading{padding:30px;font-size:11.5px}
+.loading .spinner{border-color:var(--border);border-top-color:var(--blue)}
+
+/* ---------- formularios ---------- */
+.trade-form{background:transparent;padding:16px 17px}
+.trade-form-grid label,.trade-form-grid .field label{font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--text-faint);font-weight:600}
+.trade-form-grid input,.trade-form-grid select{background:var(--bg-input);border:1px solid var(--border);
+  padding:7px 9px;font-size:12px;border-radius:var(--r)}
+.trade-form-grid input:focus,.trade-form-grid select:focus{border-color:var(--blue);outline:none}
+.trade-preview{background:var(--bg-input);border:1px solid var(--border);padding:13px 15px;font-size:12px}
+.trade-preview .row{padding:4px 0;border-bottom:1px solid var(--border-soft)}
+.trade-preview .label{color:var(--text-faint)}
+.btn-open{background:var(--blue);color:#0a0a0c;font-weight:600;padding:8px 18px}
+.btn-primary{background:var(--blue);color:#0a0a0c;font-weight:600}
+.btn-csv,.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
+.btn-csv:hover{border-color:var(--blue);color:var(--text)}
+.btn-close-trade{background:transparent;border:1px solid var(--red);color:var(--red);font-weight:500}
+
+/* ---------- educacion ---------- */
+.edu-nav{background:transparent;border:none;border-bottom:1px solid var(--border);
+  border-radius:0;padding:0;margin-bottom:18px}
+.edu-nav button{border-bottom:2px solid transparent;border-radius:0;padding:10px 15px;font-size:12px}
+.edu-nav button.on{background:transparent;color:var(--text);border-bottom-color:var(--blue);font-weight:600}
+.edu-card{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--border);
+  padding:17px 19px;margin-bottom:12px}
+.edu-card h3{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;color:var(--blue);
+  margin-bottom:12px;font-weight:700}
+.edu-card h4{font-size:12px;margin:14px 0 6px}
+.edu-card p,.edu-card li{font-size:12.5px;line-height:1.7}
+.edu-formula{background:var(--bg-input);border-left:2px solid var(--blue);font-size:11.5px;padding:10px 13px}
+table.edu th{background:transparent;border-bottom:1px solid var(--border);font-size:9px;letter-spacing:1px}
+table.edu td{padding:7px 10px;font-size:12px}
+.edu-nota{background:var(--blue-bg);border-left:2px solid var(--blue);font-size:12px;padding:10px 13px}
+.edu-nota strong{color:var(--blue)}
+.v-bien{color:var(--blue)}
+.v-medio{color:var(--text-dim)}
+.v-mal{color:var(--red)}
+.ficha-box{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--blue);padding:14px 16px}
+.ficha-box h4{font-size:9px;letter-spacing:1.2px;color:var(--text-faint);font-weight:700;margin-bottom:10px}
+.ficha-row{padding:5px 0;font-size:12px}
+.ficha-row .k{color:var(--text-faint)}
+
+/* ---------- estacionalidad ---------- */
+.est-box{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--blue);padding:13px 15px}
+.est-box .t{font-size:9px;letter-spacing:1.2px;font-weight:600}
+.est-box .v{font-size:22px;font-weight:700;letter-spacing:-.7px}
+.mes-lbl{font-size:9px;letter-spacing:.4px;text-transform:uppercase}
+.mes-val{font-size:10px}
+
+/* ---------- varios ---------- */
+.alert-toast{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--blue)}
+.alert-toast.up{border-left-color:var(--blue)}
+.alert-toast.down{border-left-color:var(--red)}
+.modal{background:var(--bg-card);border:1px solid var(--border)}
+.modal-header{border-bottom:1px solid var(--border)}
+.modal label{font-size:9px;letter-spacing:1px;font-weight:600}
+.tv-header{background:transparent;border-bottom:1px solid var(--border);padding:12px 16px}
+.tv-header h3{font-size:10.5px;text-transform:uppercase;letter-spacing:1.1px;font-weight:700}
+.tv-ctrl{background:transparent;border:1px solid var(--border);font-size:9.5px;color:var(--text-faint)}
+.tv-ctrl.active{background:var(--blue);border-color:var(--blue);color:#0a0a0c}
+.tv-tab{font-size:11px;letter-spacing:.3px}
+.tv-tab.active{border-bottom-color:var(--blue);background:transparent}
+.news-item{padding:11px 16px}
+.news-title{font-size:12px;line-height:1.5}
+.ticker-tag{background:transparent;border:1px solid var(--blue-dim);color:var(--blue);font-size:9px}
+.news-meta{font-size:9.5px;letter-spacing:.3px}
+.risk-content{padding:12px 16px}
+.risk-tip .num{background:var(--blue);color:#0a0a0c}
+.alert-badge{border-radius:3px;font-size:8.5px;letter-spacing:.5px}
+.alert-badge.tp,.alert-badge.trail{background:var(--blue);color:#0a0a0c}
+.alert-badge.sl{background:var(--red);color:#0a0a0c}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-faint)}
+
 </style>
 </head>
 <body>
@@ -567,7 +770,7 @@ table.edu td:first-child{color:var(--text);font-weight:500;white-space:nowrap}
 
     <div class="tab-panel" data-panel="setups">
       <div class="section" style="border-color:rgba(22,199,132,.4)">
-        <div class="section-header" style="background:linear-gradient(90deg,rgba(22,199,132,.15),rgba(79,140,255,.05))">
+        <div class="section-header" style="background:linear-gradient(90deg,rgba(74,158,255,.14),rgba(79,140,255,.05))">
           <h2 style="color:var(--green)">🤖 Envío Automático</h2>
           <span class="meta" id="auto-status">cargando…</span>
         </div>
@@ -1696,7 +1899,7 @@ window.showChart = function(symbol, market, fullSymbol) {
         container_id: 'tv-chart', width: '100%', height: 480,
         symbol: tvSym, interval: currentTVInterval,
         timezone: 'America/Mexico_City', theme: 'dark', style: '1',
-        locale: 'es', toolbar_bg: '#0f1521', enable_publishing: false,
+        locale: 'es', toolbar_bg: '#131316', enable_publishing: false,
         hide_top_toolbar: false, hide_side_toolbar: false, allow_symbol_change: true,
         studies: ['RSI@tv-basicstudies','MACD@tv-basicstudies','BB@tv-basicstudies']
       });
@@ -1828,11 +2031,11 @@ function renderTable(containerId, items, sparklines, opts) {
       const key = it.market === 'crypto' ? it.fullSymbol : it.symbol;
       const data = sparklines[key] || [];
       if (data.length < 2) return;
-      const color = it.changePct >= 0 ? '#16c784' : '#ea3943';
+      const color = it.changePct >= 0 ? '#4a9eff' : '#c96a6a';
       new Chart(canvas, {
         type: 'line',
         data: { labels: data.map((_,i) => i), datasets: [{ data: data, borderColor: color,
-          backgroundColor: it.changePct >= 0 ? 'rgba(22,199,132,.15)' : 'rgba(234,57,67,.15)',
+          backgroundColor: it.changePct >= 0 ? 'rgba(74,158,255,.14)' : 'rgba(201,106,106,.14)',
           borderWidth: 1.3, pointRadius: 0, fill: true, tension: 0.3 }]},
         options: { responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } },
           scales: { x: { display: false }, y: { display: false } }, animation: false }
@@ -2582,7 +2785,7 @@ function showFullChart(ticker, market) {
         container_id: 'cf-chart', width: '100%', height: 700,
         symbol: tvSym, interval: cfInterval,
         timezone: 'America/Mexico_City', theme: 'dark', style: cfStyle,
-        locale: 'es', toolbar_bg: '#0f1521', enable_publishing: false,
+        locale: 'es', toolbar_bg: '#131316', enable_publishing: false,
         hide_top_toolbar: false, hide_side_toolbar: false, allow_symbol_change: true,
         details: true, hotlist: false, calendar: false,
         studies: studies, show_popup_button: true, popup_width: '1000', popup_height: '650'
@@ -4246,7 +4449,7 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
   function log(msg, kind) {
     var out = document.getElementById('dtdiag-out');
     if (!out) return;
-    var colors = { ok: '#16c784', err: '#ea3943', warn: '#f5b041', info: '#8b96ad' };
+    var colors = { ok: '#4a9eff', err: '#c96a6a', warn: '#f5b041', info: '#8b96ad' };
     var line = document.createElement('div');
     line.style.cssText = 'padding:3px 0;border-bottom:1px solid rgba(255,255,255,.06);color:' + (colors[kind] || colors.info);
     line.textContent = new Date().toLocaleTimeString('es-MX') + '  ' + msg;
