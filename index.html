@@ -71,7 +71,16 @@ window.DT_PRESET=Object.assign({},window.DT_PRESET||{},window.DT_CREDS);
 })();
 </script>
 <style>
-:root{--bg:#06090f;--bg-card:#0f1521;--bg-card-2:#171f30;--bg-input:#0a0f1a;--border:#1f2940;--border-soft:#1a2238;--text:#e8eef9;--text-dim:#8b96ad;--text-faint:#5a6478;--green:#16c784;--green-bg:rgba(22,199,132,.12);--green-bg-s:rgba(22,199,132,.22);--red:#ea3943;--red-bg:rgba(234,57,67,.12);--red-bg-s:rgba(234,57,67,.22);--yellow:#f5b041;--yellow-bg:rgba(245,176,65,.12);--blue:#4f8cff;--blue-bg:rgba(79,140,255,.15);--purple:#a855f7;--purple-bg:rgba(168,85,247,.15)}
+:root{
+  --bg:#0b0d10;--bg-card:#13161b;--bg-card-2:#191d23;--bg-input:#0e1115;
+  --border:#232830;--border-soft:#1b1f26;
+  --text:#e9ecf1;--text-dim:#8b919c;--text-faint:#5b616b;
+  --green:#3fb950;--green-bg:rgba(63,185,80,.10);--green-bg-s:rgba(63,185,80,.18);
+  --red:#f05d5d;--red-bg:rgba(240,93,93,.10);--red-bg-s:rgba(240,93,93,.18);
+  --yellow:#d9a441;--yellow-bg:rgba(217,164,65,.10);
+  --blue:#4c8dff;--blue-bg:rgba(76,141,255,.12);
+  --purple:#a371f7;--purple-bg:rgba(163,113,247,.12);
+  --r:8px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:14px;min-height:100vh;-webkit-font-smoothing:antialiased}
 a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
@@ -299,6 +308,62 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
 .disclaimer-paper .icon{font-size:16px;flex-shrink:0}
 .disclaimer-paper strong{color:var(--blue)}
 
+
+/* ---------- limpieza visual ---------- */
+body{padding:18px 20px}
+.header{margin-bottom:18px;padding-bottom:14px}
+.header h1{font-size:17px;font-weight:600;letter-spacing:-.2px}
+.header h1 .accent{background:none;-webkit-text-fill-color:var(--blue);color:var(--blue)}
+.header .subtitle{display:none}
+.control{padding:5px 10px;font-size:11.5px;border-radius:6px}
+.summary{gap:8px;margin-bottom:16px}
+.summary-card{background:var(--bg-card);border-radius:var(--r);padding:11px 13px;transition:none}
+.summary-card:hover{transform:none;border-color:var(--border)}
+.summary-card .value{font-size:19px;font-weight:600;letter-spacing:-.3px}
+.summary-card .label{font-size:9.5px;letter-spacing:.6px}
+.summary-card .sub{font-size:10px}
+.filters{padding:8px 12px;margin-bottom:16px;gap:14px;border-radius:var(--r)}
+.filter-group label{font-size:10.5px}
+.filter-group input{padding:4px 7px;font-size:11.5px;border-radius:6px}
+.tabs{padding:3px;margin-bottom:16px;border-radius:var(--r);gap:1px}
+.tab{padding:7px 13px;font-size:12px;border-radius:6px;font-weight:500}
+.tab.active{font-weight:600}
+.section{border-radius:var(--r);margin-bottom:12px}
+.section-header{padding:10px 14px}
+.section-header h2{font-size:12.5px;font-weight:600;letter-spacing:.1px}
+.section-header .meta{font-size:10.5px;color:var(--text-faint)}
+.section-header .count{font-size:9.5px;padding:1px 6px}
+/* encabezados de seccion sin degradados */
+.section.premarket .section-header,.section.score-section .section-header,
+.section.fund-section .section-header{background:var(--bg-card-2)}
+.section.premarket,.section.score-section,.section.fund-section{border-color:var(--border)}
+.section.premarket h2{color:var(--yellow)}
+.section.score-section h2{color:var(--blue)}
+.section.fund-section h2{color:var(--purple)}
+th{padding:7px 11px;font-size:9.5px;letter-spacing:.6px;background:var(--bg-card)}
+td{padding:7px 11px;font-size:12px}
+.change{padding:1px 6px;font-size:11px;border-radius:5px;font-weight:600}
+.change.alert-up,.change.alert-down{box-shadow:none}
+.rvol{padding:1px 5px;font-size:10px}
+.rvol.extreme{box-shadow:none}
+.score-pill{padding:2px 6px;font-size:10px;font-weight:600}
+.diag{padding:6px 11px;margin-bottom:12px;font-size:10.5px;gap:5px;border-radius:var(--r)}
+.diag .pill{padding:2px 7px;font-size:10px}
+.diag .lbl{font-size:9.5px}
+.empty-state,.empty-journal{padding:20px 16px;font-size:11.5px;color:var(--text-faint)}
+.empty-state .em,.empty-journal .big{font-size:22px;margin-bottom:6px;opacity:.3}
+.risk-content{padding:8px 12px}
+.risk-tip{padding:6px 0}
+.alert-toast{border-radius:var(--r);padding:9px 12px}
+.modal{border-radius:10px}
+.btn,.btn-csv,.btn-open{border-radius:6px}
+.trade-form{padding:12px 14px}
+.trade-form-grid{gap:9px}
+.trade-preview{border-radius:var(--r);padding:10px 12px;font-size:11.5px;line-height:1.6}
+#tv-container{border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.tv-header{padding:9px 13px}
+.tv-header h3{font-size:12px;font-weight:600}
+
 </style>
 </head>
 <body>
@@ -345,13 +410,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
   <span class="pill" id="diag-mode"><span class="dot" style="background:var(--blue)"></span><span id="diag-mode-text">CORS Proxy</span></span>
 </div>
 
-<div class="myth-banner">
-  <div class="icon">⚠️</div>
-  <div>
-    <div class="title">No caigas en el mito del retail trader</div>
-    <div class="body">"Lo que subió hoy va a subir mañana" es <strong>estadísticamente falso</strong>. La reversión a la media hace que la mayoría de grandes ganadores corrijan al día siguiente. Los gap traders profesionales miran <strong>pre-market de MAÑANA</strong> con catalizador de noticias, no el cierre de hoy. Estos datos son objetivos, NO son señales de compra.</div>
-  </div>
-</div>
+
 
 <div class="summary">
   <div class="summary-card green"><div class="label">Gainers ≥ umbral</div><div class="value" id="stat-gainers">–</div><div class="sub">cambio del día</div></div>
@@ -424,16 +483,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
         <div class="section-header"><h2>💎 Análisis Fundamental</h2><span class="meta">P/E, EPS, Market Cap, Dividend Yield · solo acciones US/ETF</span></div>
         <div id="body-fund"><div class="loading"><span class="spinner"></span>Cargando…</div></div>
       </div>
-      <div class="section">
-        <div class="section-header"><h2>📚 ¿Qué significa cada métrica?</h2></div>
-        <div class="risk-content">
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">P/E (Price/Earnings)</div><div class="tip-body">Cuánto pagas por cada peso de ganancia anual. P/E 15 = "te tomaría 15 años recuperar la inversión solo con ganancias actuales". P/E bajo puede ser barato O empresa en problemas. P/E del S&P 500 históricamente ~16.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">EPS (Earnings Per Share)</div><div class="tip-body">Ganancia por acción en los últimos 12 meses. EPS creciente = empresa generando más utilidad. Compara EPS con periodo anterior.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">Market Cap</div><div class="tip-body">Valor total de la empresa. >$200B = mega-cap (estable). $10-200B = large-cap. $2-10B = mid-cap. <$2B = small-cap (más volátil, mejor para day trading).</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">Dividend Yield</div><div class="tip-body">% anual que paga la empresa en dividendos. Para day trading no importa (no mantienes posición). Para swing/long-term sí.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">Forward P/E</div><div class="tip-body">P/E calculado con ganancias esperadas a 12 meses. Si Forward P/E < P/E actual, analistas esperan crecimiento de utilidades.</div></div></div>
-        </div>
-      </div>
+      
     </div>
 
     <div class="tab-panel" data-panel="earnings">
@@ -449,7 +499,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
           </div>
         </div>
         <div style="padding:9px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11px;color:var(--text-dim);line-height:1.5">
-          <strong style="color:var(--yellow)">⚠️ Earnings = el catalizador más potente y más peligroso.</strong> Las acciones pueden moverse 10-40% después del reporte. Muchos day traders <strong>evitan operar</strong> justo antes de earnings porque es una moneda al aire. Requiere Finnhub API key.
+          <strong style="color:var(--yellow)">Earnings mueven 10-40%. 🌅 antes de abrir · 🌙 tras el cierre.</strong> Las acciones pueden moverse 10-40% después del reporte. Muchos day traders <strong>evitan operar</strong> justo antes de earnings porque es una moneda al aire. Requiere Finnhub API key.
         </div>
         <div id="body-earnings"><div class="empty-journal"><span class="big">📅</span>Click "Cargar" para ver qué empresas reportan resultados esta semana.</div></div>
       </div>
@@ -473,7 +523,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
               <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);cursor:pointer"><input type="checkbox" id="auto-brief-bmv" checked style="width:auto"> 🇲🇽 BMV</label>
             </div>
             <div id="auto-brief-preview" style="font-size:10px;color:var(--yellow);margin-top:6px;line-height:1.5"></div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:3px">Se calcula automáticamente según el horario vigente. Solo días hábiles. Mensajes separados por mercado.</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:3px">Días hábiles. Un mensaje por mercado.</div>
           </div>
           <div>
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:8px;cursor:pointer">
@@ -484,7 +534,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
             <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-dim);margin-top:6px;cursor:pointer">
               <input type="checkbox" id="auto-score-needs-news" checked style="width:auto"> exigir noticia reciente (48h)
             </label>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:4px">Funciona independiente de Setup Alerts. Se dispara en cada actualización.</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:4px">Independiente de Setup Alerts.</div>
           </div>
           <div>
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:8px;cursor:pointer">
@@ -498,11 +548,11 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
               </select>
               <input type="text" id="auto-earn-time" value="07:00" style="width:70px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:5px;font-family:monospace;font-size:11.5px">
             </div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:4px">Lista de empresas que reportan en los próximos 7 días.</div>
+            <div style="font-size:10px;color:var(--text-faint);margin-top:4px">Reportes de los próximos 7 días.</div>
           </div>
         </div>
         <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap">
-          <span style="font-size:10.5px;color:var(--yellow)">ℹ️ Esto solo aplica con la pestaña abierta. Las alertas automáticas ya corren en GitHub Actions (llegan a Telegram sin navegador).</span>
+          <span style="font-size:10.5px;color:var(--yellow)">Requiere pestaña abierta. GitHub Actions cubre el resto.</span>
           <div style="display:flex;gap:6px">
             <button class="control" onclick="saveAutoConfig()" style="background:var(--green);color:#fff;border:none">💾 Guardar</button>
             <button class="control" onclick="testAutoBriefing()">▶ Probar envío ahora</button>
@@ -532,10 +582,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
       </div>
 
       
-      <div class="disclaimer-paper">
-        <div class="icon">🎯</div>
-        <div><strong>Setup Alerts = criterios objetivos, NO señales de compra.</strong> Cada template revisa las acciones en tus watchlists (US, ETF, BMV, Crypto) contra criterios como "gap pre-market + RVOL alto + cerca de máximo 52w". Cuando una cumple, te llega notificación (navegador + Telegram si está activo). <strong>Tú decides si comprar</strong>. Yo NO te recomiendo qué operar — te doy información objetiva para que tomes decisiones informadas.</div>
-      </div>
+      
 
       <div class="section">
         <div class="section-header">
@@ -591,24 +638,11 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
         <div id="cf-container" style="min-height:700px"><div class="empty-state"><span class="em">📊</span>Escribe un ticker arriba (ej: NVDA, BTCUSDT, AMXL.MX) y click ▶ Cargar para ver el gráfico de velas completo con indicadores. O click en cualquier ticker de otras pestañas y se carga automáticamente aquí.</div></div>
       </div>
 
-      <div class="section">
-        <div class="section-header"><h2>📚 Cómo leer las velas e indicadores</h2></div>
-        <div class="risk-content">
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">🕯 Vela japonesa</div><div class="tip-body">Cada vela representa un periodo (ej: 5 min). <strong>Verde</strong>=cerró arriba del open (compradores ganaron). <strong>Roja</strong>=cerró abajo (vendedores ganaron). El cuerpo es open→close, las "mechas" son highs/lows.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">📊 RSI (Relative Strength Index)</div><div class="tip-body">0-100. >70 = sobrecomprado (puede corregir). <30 = sobrevendido (puede rebotar). Cruces de 50 marcan cambios de momentum.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">📈 MACD</div><div class="tip-body">Cruce de la línea MACD sobre la signal = señal alcista. Cruce abajo = bajista. El histograma muestra fuerza del momentum.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">📉 Bollinger Bands</div><div class="tip-body">Bandas de volatilidad alrededor de la media móvil. Toque a la banda superior = sobrecomprado posible. Banda inferior = sobrevendido. Banda apretada = baja volatilidad antes de movimiento grande.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">📏 MA 50/200 (Medias móviles)</div><div class="tip-body">MA 50 sobre MA 200 = "Golden Cross" (alcista de largo plazo). MA 50 bajo MA 200 = "Death Cross" (bajista). Más útil en diario/semanal que intradía.</div></div></div>
-          <div class="risk-tip"><div style="flex:1"><div class="tip-title">🔥 Patrones de velas más útiles</div><div class="tip-body"><strong>Hammer</strong>=mecha larga abajo, rechazo de bajada. <strong>Engulfing</strong>=vela grande que cubre la anterior, cambio fuerte. <strong>Doji</strong>=open ≈ close, indecisión. <strong>3 black crows</strong>=tres velas rojas grandes, bajista fuerte.</div></div></div>
-        </div>
-      </div>
+      
     </div>
 
     <div class="tab-panel" data-panel="journal">
-      <div class="disclaimer-paper">
-        <div class="icon">📒</div>
-        <div><strong>Paper Trading / Simulación.</strong> Esta bitácora NO ejecuta órdenes reales en ningún broker. Es para que pruebes tu estrategia ANTES de arriesgar dinero real. Yo NO te recomiendo qué comprar — tú decides; yo calculo costos, P&L, trailing stops y stats. Los costos estimados (spread 0.05% + slippage 0.02% por lado) son típicos de acciones US líquidas. Todo se guarda localmente en tu navegador.</div>
-      </div>
+      
 
       <div class="journal-grid">
         <div class="summary-card"><div class="label">Total trades</div><div class="value" id="j-total">0</div><div class="sub" id="j-open-count">0 abiertos</div></div>
@@ -678,8 +712,7 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
           </select>
         </div>
         <div style="padding:8px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11px;color:var(--text-dim)">
-          <strong style="color:var(--blue)">ℹ Scanner cross-mercado:</strong> revisa TODO el universo de tickers (no solo tu watchlist). Resultados de Yahoo Finance screeners predefinidos + Binance para crypto.
-        </div>
+          Revisa todo el mercado, no solo tu watchlist.</div>
         <div id="body-scanner"><div class="loading"><span class="spinner"></span>Selecciona un screener arriba…</div></div>
       </div>
     </div>
@@ -770,27 +803,9 @@ td.name{color:var(--text-dim);font-size:11px;max-width:160px;overflow:hidden;tex
       <div id="body-news"><div class="loading"><span class="spinner"></span>Cargando…</div></div>
     </div>
 
-    <div class="section mistakes-panel">
-      <div class="section-header"><h2>❌ Errores que matan cuentas</h2></div>
-      <div class="risk-content">
-        <div class="risk-tip"><div class="num">1</div><div><div class="tip-title">Chase: comprar tras subir 5%+</div><div class="tip-body">Si ya subió mucho, llegaste tarde. Espera pullback.</div></div></div>
-        <div class="risk-tip"><div class="num">2</div><div><div class="tip-title">Promediar a la baja</div><div class="tip-body">Nunca añades a posición perdedora. Cortas y sigues.</div></div></div>
-        <div class="risk-tip"><div class="num">3</div><div><div class="tip-title">Sin stop-loss = sin trade</div><div class="tip-body">Define salida antes de entrar.</div></div></div>
-        <div class="risk-tip"><div class="num">4</div><div><div class="tip-title">Revenge trading</div><div class="tip-body">Tras pérdida, apaga la pantalla 30 min.</div></div></div>
-        <div class="risk-tip"><div class="num">5</div><div><div class="tip-title">Overtrading</div><div class="tip-body">Profesionales: 1-3 trades calidad/día.</div></div></div>
-      </div>
-    </div>
+    
 
-    <div class="section risk-panel">
-      <div class="section-header"><h2>✅ Reglas de oro</h2></div>
-      <div class="risk-content">
-        <div class="risk-tip"><div class="num">1</div><div><div class="tip-title">Regla del 1%</div><div class="tip-body">Riesgo máx por trade = 1% de capital total.</div></div></div>
-        <div class="risk-tip"><div class="num">2</div><div><div class="tip-title">R:R mínimo 2:1</div><div class="tip-body">Ganancia objetivo ≥ 2x pérdida tolerada.</div></div></div>
-        <div class="risk-tip"><div class="num">3</div><div><div class="tip-title">Catalizador + Volumen + Setup</div><div class="tip-body">Los tres juntos o no entres.</div></div></div>
-        <div class="risk-tip"><div class="num">4</div><div><div class="tip-title">Paper trading 2 meses</div><div class="tip-body">Antes de dinero real.</div></div></div>
-        <div class="risk-tip"><div class="num">5</div><div><div class="tip-title">Bitácora obligatoria</div><div class="tip-body">Anota cada trade. Revisa semanal.</div></div></div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -3017,7 +3032,7 @@ window.generateBriefing = function(sendTelegram) {
 
   const header = '<div style="padding:11px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:11.5px;line-height:1.6">'
     + '<strong style="color:var(--blue)">Briefing generado ' + new Date().toLocaleString('es-MX') + '</strong> · Estado: ' + status.label + '<br>'
-    + '<span style="color:var(--text-dim)">Los niveles Stop/Target son <strong>sugerencias mecánicas</strong> (stop = 60% de volatilidad diaria estimada, target = 2x el stop para R:B 2:1). Ajústalos según soportes/resistencias reales del chart. NO son recomendaciones de compra.</span>'
+    + '<span style="color:var(--text-dim)">Stop/Target = sugerencia mecánica R:B 2:1.</span>'
     + '</div>';
 
   document.getElementById('body-briefing').innerHTML = header
@@ -3872,7 +3887,7 @@ if (typeof autoRefreshOn === 'undefined' || autoRefreshOn) {
       + '<div style="font-size:10px;color:#8b96ad;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Log</div>'
       + '<div id="dtdiag-out" style="max-height:160px;overflow-y:auto;background:#06090f;border:1px solid #243049;border-radius:5px;padding:7px 9px;font-family:monospace;font-size:10.5px;line-height:1.5"></div>'
 
-      + '<div style="margin-top:8px;font-size:10px;color:#5a6478;line-height:1.5">Este panel funciona independientemente del resto. Guarda las credenciales en el mismo almacenamiento que usa el dashboard.</div>'
+      + '<div style="margin-top:8px;font-size:10px;color:#5a6478;line-height:1.5"></div>'
       + '</div>';
 
     document.body.appendChild(wrap);
