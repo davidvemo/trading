@@ -93,7 +93,7 @@ def mercado_abierto(incluir_premarket=True):
     cur = n.hour*60 + n.minute
     return ini <= cur <= fin
 
-ETIQUETAS = {"watch":"MOVIMIENTO DETECTADO","precio":"ALERTA DE PRECIO","cierre":"CIERRE DE MERCADO","brief-us":"BRIEFING US","brief-bmv":"BRIEFING BMV",
+ETIQUETAS = {"watch":"MOVIMIENTO DETECTADO","precierre":"PRE-CIERRE","precio":"ALERTA DE PRECIO","cierre":"CIERRE DE MERCADO","brief-us":"BRIEFING US","brief-bmv":"BRIEFING BMV",
              "movers":"MOVERS CON NOTICIA","positions":"VIGILANCIA DE POSICIONES",
              "earnings":"EARNINGS SEMANAL","test":"PRUEBA","alertas":"ALERTA LOCAL"}
 
@@ -406,6 +406,11 @@ def _carpetas_descargas():
             pp = os.path.join(os.environ["USERPROFILE"], d)
             if os.path.isdir(pp) and pp not in c: c.append(pp)
     return c
+
+def estado_sync():
+    """Resumen de lo que el bot tiene cargado ahora mismo."""
+    pos = _leer_posiciones(); al = _leer_alertas_precio()
+    return len(pos), len(al)
 
 def recoger_sync(silencioso=True):
     """Busca dt_sync.json (incluso dt_sync (1).json) y lo importa."""
@@ -728,6 +733,62 @@ def cierre():
     msg += "\n━━━━━━━━━━━━━━━━\n⚠️ Info objetiva, NO recomendacion."
     print("[OK]" if telegram(msg) else "[FAIL]")
 
+
+def precierre(top=None):
+    """Aviso antes del cierre: que se esta moviendo y como van tus posiciones.
+       Mismo umbral y formato que el briefing de la manana."""
+    top = top or CFG["top_briefing"]
+    items = obtener_datos()
+    if not items:
+        telegram(encabezado("precierre") + "\n⚠️ Sin datos."); return
+    for it in items: it["score"] = score(it)
+
+    h, m = apertura_cdmx()
+    cierra = "14:00" if es_verano() else "15:00"
+    msg = encabezado("precierre") + f"\n⏰ CIERRA {cierra} CDMX (en ~25 min)\n"
+    msg += "━━━━━━━━━━━━━━━━\n"
+
+    # posiciones primero: es lo urgente antes de que cierre
+    pos = _leer_posiciones()
+    if pos:
+        qm = {i["symbol"]: i for i in items}
+        msg += "\n💼 TUS POSICIONES\n"
+        total = 0.0
+        for pp in pos:
+            q = qm.get(pp.get("ticker"))
+            if not q or not pp.get("entry"): continue
+            entry, qty = float(pp["entry"]), float(pp.get("qty") or 1)
+            pnl = (q["price"] - entry) * qty - (entry + q["price"]) * qty * 0.0007
+            pct = (q["price"] - entry) / entry * 100
+            total += pnl
+            msg += f"  {pp['ticker'].replace('.MX','')}  ${fp(q['price'])}  {pct:+.2f}%  {'+' if pnl>=0 else ''}${pnl:,.2f}\n"
+            if pp.get("stop"):   msg += f"     stop ${fp(float(pp['stop']))}"
+            if pp.get("target"): msg += f"   target ${fp(float(pp['target']))}"
+            if pp.get("stop") or pp.get("target"): msg += "\n"
+        msg += f"  ─────────\n  Total: {'+' if total>=0 else ''}${total:,.2f}\n"
+        msg += "\n  ⚠️ Day trading = cerrar hoy. Revisa si vas a mantener.\n"
+
+    # los que mas se mueven, mismo umbral que el briefing
+    u = CFG["umbral_pct"]
+    movs = [i for i in items if abs(i.get("chg") or 0) >= u]
+    movs.sort(key=lambda x: abs(x.get("chg") or 0), reverse=True)
+    us_m = [i for i in movs if not i["symbol"].endswith(".MX")][:top]
+    mx_m = [i for i in movs if i["symbol"].endswith(".MX")][:top]
+
+    def bloque(flag, nombre, lista):
+        if not lista: return f"\n{flag} {nombre}: ninguno sobre {u}%\n"
+        t = f"\n{flag} {nombre} (>{u}%)\n"
+        for i, it in enumerate(lista, 1):
+            t += f"  {i}. {it['symbol'].replace('.MX','')}  ${fp(it['price'])}  {fpc(it.get('chg'))}"
+            if it.get("rvol"): t += f"  RVOL {it['rvol']:.1f}x"
+            t += f"  sc {it['score']}\n"
+        return t
+
+    msg += bloque("🇺🇸", "ESTADOS UNIDOS", us_m)
+    msg += bloque("🇲🇽", "BOLSA MEXICANA", mx_m)
+    msg += "\n━━━━━━━━━━━━━━━━\n⚠️ Info objetiva, NO recomendacion."
+    print("[OK]" if telegram(msg) else "[FAIL]")
+
 # ================================================================
 #  POSICIONES  (positions.json)
 # ================================================================
@@ -979,13 +1040,14 @@ jobs:
 WORKFLOWS = {
     "watch":     ("Vigilancia Continua", ["45 12 * 3-10 1-5", "0,15,30,45 13,14,15,16,17,18,19,20 * 3-10 1-5",
                                           "45 13 * 1,2,11,12 1-5", "0,15,30,45 14,15,16,17,18,19,20,21 * 1,2,11,12 1-5"]),
-    "brief-us":  ("Briefing US",  ["50 12 * 3-10 1-5", "50 13 * 1,2,11,12 1-5"]),
-    "brief-bmv": ("Briefing BMV", ["54 12 * 3-10 1-5", "54 13 * 1,2,11,12 1-5"]),
+    "brief-us":  ("Briefing US",  ["28 12 * 3-10 1-5", "28 13 * 1,2,11,12 1-5"]),
+    "brief-bmv": ("Briefing BMV", ["32 12 * 3-10 1-5", "32 13 * 1,2,11,12 1-5"]),
+    "precierre": ("Pre-Cierre",   ["33 19 * 3-10 1-5", "33 20 * 1,2,11,12 1-5"]),
     "positions": ("Vigilar Posiciones", ["0,30 14,15,16,17,18,19,20 * 3-10 1-5",
                                          "0,30 15,16,17,18,19,20,21 * 1,2,11,12 1-5"]),
     "movers":    ("Movers con Noticia", ["0 16,18,20 * 3-10 1-5", "0 17,19,21 * 1,2,11,12 1-5"]),
     "earnings":  ("Earnings Semanal", ["0 13 * 3-10 1", "0 14 * 1,2,11,12 1"]),
-    "cierre":    ("Resumen de Cierre", ["10 20 * 3-10 1-5", "10 21 * 1,2,11,12 1-5"]),
+    "cierre":    ("Resumen de Cierre", ["5 20 * 3-10 1-5", "5 21 * 1,2,11,12 1-5"]),
     "check":     ("Check Remoto (manual)", []),
 }
 
@@ -1135,9 +1197,13 @@ def loop_local():
         try:
             watch(local=True)
             ciclo += 1
-            if ciclo % 10 == 0 and cred("github"):
-                try: subir_sync()
-                except Exception: pass
+            if ciclo % 3 == 0 and cred("github"):
+                try:
+                    subir_sync()
+                    np, na = estado_sync()
+                    print(f"   [sync] repo actualizado: {np} posiciones, {na} alertas")
+                except Exception as e:
+                    print(f"   [sync] fallo: {e}")
         except KeyboardInterrupt:
             print("\nDetenido."); break
         except Exception as e:
