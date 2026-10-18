@@ -364,6 +364,64 @@ td{padding:7px 11px;font-size:12px}
 .tv-header{padding:9px 13px}
 .tv-header h3{font-size:12px;font-weight:600}
 
+
+/* ---------- Educacion ---------- */
+.edu-nav{display:flex;gap:2px;background:var(--bg-card);padding:3px;border-radius:var(--r);
+  margin-bottom:12px;border:1px solid var(--border);overflow-x:auto}
+.edu-nav button{padding:7px 13px;border-radius:6px;border:none;background:transparent;
+  color:var(--text-dim);font-size:11.5px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.edu-nav button:hover{color:var(--text)}
+.edu-nav button.on{background:var(--blue);color:#fff;font-weight:600}
+.edu-sec{display:none}.edu-sec.on{display:block}
+.edu-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:10px}
+.edu-card h3{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--blue)}
+.edu-card h4{font-size:12px;font-weight:600;margin:12px 0 5px;color:var(--text)}
+.edu-card p{font-size:12px;line-height:1.65;color:var(--text-dim);margin-bottom:8px}
+.edu-card strong{color:var(--text)}
+.edu-card ul{margin:0 0 8px 16px}
+.edu-card li{font-size:12px;line-height:1.6;color:var(--text-dim);margin-bottom:3px}
+.edu-formula{background:var(--bg-input);border-left:2px solid var(--blue);padding:8px 11px;
+  border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;
+  color:var(--text);margin:8px 0;line-height:1.6;white-space:pre-wrap}
+table.edu{width:100%;border-collapse:collapse;font-size:11.5px;margin:8px 0}
+table.edu th{background:var(--bg-card-2);padding:6px 9px;text-align:left;font-size:10px;
+  color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;position:static}
+table.edu td{padding:6px 9px;border-bottom:1px solid var(--border-soft);color:var(--text-dim);vertical-align:top}
+table.edu td:first-child{color:var(--text);font-weight:500;white-space:nowrap}
+.v-bien{color:var(--green);font-weight:600}
+.v-medio{color:var(--yellow);font-weight:600}
+.v-mal{color:var(--red);font-weight:600}
+.edu-nota{background:var(--yellow-bg);border-left:2px solid var(--yellow);padding:8px 11px;
+  border-radius:4px;font-size:11.5px;color:var(--text-dim);line-height:1.6;margin:8px 0}
+.edu-nota strong{color:var(--yellow)}
+.ficha-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.ficha-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.ficha-box h4{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);margin-bottom:8px}
+.ficha-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-soft);font-size:11.5px}
+.ficha-row:last-child{border-bottom:none}
+.ficha-row .k{color:var(--text-dim)}
+.ficha-row .v{font-variant-numeric:tabular-nums;font-weight:600}
+
+
+/* ---------- Estacionalidad ---------- */
+.mes-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:10px 0}
+.mes-col{text-align:center}
+.mes-barra{height:90px;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
+.mes-barra .b{border-radius:3px 3px 0 0;min-height:2px;transition:none}
+.mes-barra.neg{justify-content:flex-start}
+.mes-barra.neg .b{border-radius:0 0 3px 3px}
+.mes-lbl{font-size:9.5px;color:var(--text-dim);margin-top:4px}
+.mes-val{font-size:9.5px;font-variant-numeric:tabular-nums;margin-top:1px;font-weight:600}
+.mes-col.hoy .mes-lbl{color:var(--blue);font-weight:700}
+.mes-col.mejor .mes-val{color:var(--green)}
+.mes-col.peor .mes-val{color:var(--red)}
+.est-resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin:12px 0}
+.est-box{background:var(--bg-card-2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.est-box .t{font-size:9.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px}
+.est-box .v{font-size:17px;font-weight:600;margin-top:3px;letter-spacing:-.3px}
+.est-box .s{font-size:10.5px;color:var(--text-faint);margin-top:2px}
+
 </style>
 </head>
 <body>
@@ -440,6 +498,8 @@ td{padding:7px 11px;font-size:12px}
   <button class="tab" data-tab="setups">🎯 Setup Alerts</button>
   <button class="tab" data-tab="chart-full">📈 Gráfico Detalle</button>
   <button class="tab" data-tab="journal">📒 Bitácora Paper Trading</button>
+  <button class="tab" data-tab="season">📆 Estacionalidad</button>
+  <button class="tab" data-tab="edu">📚 Educación</button>
   <button class="tab" data-tab="scanner">🔍 Scanner Mercado</button>
   <button class="tab" data-tab="watchlist">⭐ Mi Watchlist</button>
 </div>
@@ -693,6 +753,358 @@ td{padding:7px 11px;font-size:12px}
           </div>
         </div>
         <div id="body-history"><div class="empty-journal"><span class="big">📂</span>Sin trades cerrados aún. Cierra una posición abierta para ver el resultado aquí.</div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="season">
+      <div class="section">
+        <div class="section-header">
+          <h2>📆 Estacionalidad por ticker</h2>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="es-tk" placeholder="NVDA" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 9px;border-radius:6px;font-size:12px;width:110px">
+            <select id="es-años" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:6px;font-size:12px">
+              <option value="5">5 años</option><option value="10" selected>10 años</option><option value="15">15 años</option>
+            </select>
+            <button class="control" onclick="verEstacionalidad()" style="background:var(--blue);color:#fff;border:none">Calcular</button>
+          </div>
+        </div>
+        <div id="es-out" style="padding:14px"><div class="empty-state">Escribe un ticker para ver su rendimiento promedio por mes.</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>🗓 Mejor y peor mes · toda la watchlist</h2>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="meta" id="es-prog"></span>
+            <button class="control" onclick="estacionalidadLote()">Calcular todos</button>
+          </div>
+        </div>
+        <div style="padding:9px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:10.5px;color:var(--text-faint)">
+          Una consulta por ticker. Tarda unos minutos la primera vez; después queda en caché 30 días.
+        </div>
+        <div id="es-lote"><div class="empty-state">Sin calcular.</div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="edu">
+      <div class="edu-nav">
+        <button class="on" data-edu="terminos">Términos del dashboard</button>
+        <button data-edu="tecnico">Análisis técnico</button>
+        <button data-edu="fundamental">Análisis fundamental</button>
+        <button data-edu="ficha">Ficha de empresa</button>
+      </div>
+
+      <!-- ============ TERMINOS ============ -->
+      <div class="edu-sec on" data-edu-sec="terminos">
+        <div class="edu-card">
+          <h3>Activity Score (0-100)</h3>
+          <p>Puntaje propio del dashboard. Mide <strong>intensidad de movimiento</strong>, no calidad de la inversión. Se reparte sobre los componentes con datos disponibles, así un ticker sin volumen no queda penalizado.</p>
+          <table class="edu">
+            <thead><tr><th>Componente</th><th>Peso</th><th>Satura en</th><th>Qué mide</th></tr></thead>
+            <tbody>
+              <tr><td>|Cambio %| del día</td><td>40</td><td>10%</td><td>Magnitud del movimiento</td></tr>
+              <tr><td>RVOL</td><td>30</td><td>5x</td><td>Participación del mercado</td></tr>
+              <tr><td>Posición rango 52s</td><td>15</td><td>—</td><td>Contexto técnico</td></tr>
+              <tr><td>Gap pre-market</td><td>15</td><td>5%</td><td>Presión antes de abrir</td></tr>
+            </tbody>
+          </table>
+          <div class="edu-formula">Score = (Σ peso × valor) / (Σ pesos disponibles) × 100</div>
+          <p>Posición en rango 52 semanas: &gt;90% suma 15 (posible ruptura), 70-90% suma 10, &lt;10% suma 8 (posible rebote), zona media suma 3.</p>
+          <p>La etiqueta <strong>(3/4 factores)</strong> indica con cuántos componentes se calculó. Un 62 con cuatro factores pesa más que un 62 con dos.</p>
+          <div class="edu-nota"><strong>Lo que no mide:</strong> si hay catalizador, si el movimiento ya se agotó, ni la calidad del setup. Los pesos son criterio propio, no resultado de backtesting.</div>
+        </div>
+
+        <div class="edu-card">
+          <h3>RVOL — Volumen Relativo</h3>
+          <div class="edu-formula">RVOL = Volumen de hoy / Volumen promedio 10 días</div>
+          <table class="edu">
+            <thead><tr><th>RVOL</th><th>Lectura</th></tr></thead>
+            <tbody>
+              <tr><td>1.0x</td><td>Día normal, sin interés especial</td></tr>
+              <tr><td>2-3x</td><td>Interés inusual, algo está pasando</td></tr>
+              <tr><td>5-10x</td><td>Evento relevante (noticia, earnings)</td></tr>
+              <tr><td>10x+</td><td>Movimiento explosivo</td></tr>
+            </tbody>
+          </table>
+          <p>Un movimiento de 8% con RVOL 1x tiene poca participación: fácil de revertir y con spread amplio. El mismo 8% con RVOL 5x tiene respaldo y liquidez real para entrar y salir.</p>
+        </div>
+
+        <div class="edu-card">
+          <h3>Resto de términos</h3>
+          <table class="edu">
+            <tbody>
+              <tr><td>Gap</td><td>Hueco entre el cierre anterior y la apertura. Gap alcista = abre por arriba del cierre previo.</td></tr>
+              <tr><td>PM / AH</td><td>Pre-market (antes de abrir) / After-hours (tras el cierre). Menos volumen, spreads más amplios.</td></tr>
+              <tr><td>Catalizador</td><td>Noticia que explica el movimiento: earnings, contrato, aprobación regulatoria, fusión. Sin catalizador, el movimiento tiende a revertirse.</td></tr>
+              <tr><td>Rango 52 semanas</td><td>Máximo y mínimo del último año. La barra muestra dónde cotiza dentro de ese rango.</td></tr>
+              <tr><td>Stop-loss</td><td>Precio de salida para limitar la pérdida. Se define antes de entrar.</td></tr>
+              <tr><td>Take-profit</td><td>Precio objetivo donde se toma la utilidad.</td></tr>
+              <tr><td>Trailing stop</td><td>Stop que sube con el precio pero nunca baja. El % es cuánto se tolera que retroceda desde el máximo alcanzado.</td></tr>
+              <tr><td>Ratio R:B</td><td>Riesgo:Beneficio. Ganancia esperada ÷ pérdida tolerada. Mínimo recomendado 2:1.</td></tr>
+              <tr><td>Spread</td><td>Diferencia entre precio de compra (bid) y venta (ask). Es un costo implícito de cada operación.</td></tr>
+              <tr><td>Slippage</td><td>Diferencia entre el precio esperado y el de ejecución real.</td></tr>
+              <tr><td>Profit Factor</td><td>Suma de ganancias ÷ suma de pérdidas. &gt;1.5 sistema rentable, &gt;2 excelente, &lt;1 pierde dinero.</td></tr>
+              <tr><td>Win Rate</td><td>% de operaciones ganadoras. Por sí solo no basta: importa junto al tamaño promedio de ganancias y pérdidas.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ TECNICO ============ -->
+      <div class="edu-sec" data-edu-sec="tecnico">
+        <div class="edu-card">
+          <h3>Premisas del análisis técnico</h3>
+          <ul>
+            <li>El precio descuenta toda la información disponible.</li>
+            <li>Los precios se mueven en tendencias.</li>
+            <li>La historia tiende a repetirse por el comportamiento del mercado.</li>
+          </ul>
+          <div class="edu-nota">El análisis técnico estudia precio y volumen; el fundamental estudia el valor del negocio. Responden preguntas distintas: <strong>cuándo</strong> frente a <strong>qué</strong>.</div>
+        </div>
+
+        <div class="edu-card">
+          <h3>Tendencia</h3>
+          <table class="edu">
+            <tbody>
+              <tr><td>Alcista</td><td>Máximos y mínimos sucesivamente más altos</td></tr>
+              <tr><td>Bajista</td><td>Máximos y mínimos sucesivamente más bajos</td></tr>
+              <tr><td>Lateral</td><td>Oscila en rango sin dirección definida</td></tr>
+            </tbody>
+          </table>
+          <p>Por duración: primaria (meses o años), secundaria (semanas, corrige a la primaria) y terciaria (días, relevante para intradía).</p>
+          <p>La <strong>línea de tendencia</strong> alcista une mínimos ascendentes; la bajista une máximos descendentes. Su ruptura con volumen sugiere cambio de dirección.</p>
+        </div>
+
+        <div class="edu-card">
+          <h3>Soporte y resistencia</h3>
+          <p><strong>Soporte:</strong> nivel donde la demanda frena las caídas. <strong>Resistencia:</strong> nivel donde la oferta frena los avances.</p>
+          <ul>
+            <li>Cuantas más veces se respeta un nivel, más relevante se considera.</li>
+            <li>Al romperse, suelen intercambiar papeles: un soporte roto pasa a actuar como resistencia.</li>
+            <li>Las rupturas con volumen alto tienen mayor validez que las de volumen bajo.</li>
+          </ul>
+          <div class="edu-nota">Para colocar stops: <strong>debajo</strong> del soporte en posiciones largas. Un stop dentro de la zona de ruido se activa con fluctuaciones normales.</div>
+        </div>
+
+        <div class="edu-card">
+          <h3>Promedios móviles</h3>
+          <div class="edu-formula">SMA = media aritmética de los últimos N cierres
+EMA = media que pondera más los datos recientes</div>
+          <table class="edu">
+            <thead><tr><th>Periodo</th><th>Uso</th></tr></thead>
+            <tbody>
+              <tr><td>9 / 20</td><td>Corto plazo, intradía</td></tr>
+              <tr><td>50</td><td>Mediano plazo, soporte dinámico</td></tr>
+              <tr><td>200</td><td>Largo plazo, referencia de tendencia mayor</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Golden cross:</strong> la media de 50 cruza por arriba de la de 200 (señal alcista de largo plazo). <strong>Death cross:</strong> el cruce inverso.</p>
+          <p>Son indicadores <strong>seguidores</strong>: confirman la tendencia después de iniciada, no la anticipan. En mercados laterales generan señales falsas.</p>
+        </div>
+
+        <div class="edu-card">
+          <h3>Bandas de Bollinger</h3>
+          <div class="edu-formula">Banda central = SMA de 20 periodos
+Banda superior = SMA20 + (2 × desviación estándar)
+Banda inferior = SMA20 − (2 × desviación estándar)</div>
+          <p>Miden volatilidad: se ensanchan cuando aumenta y se estrechan cuando disminuye.</p>
+          <ul>
+            <li><strong>Estrechamiento:</strong> baja volatilidad, suele anteceder movimientos amplios.</li>
+            <li><strong>Toque de banda superior:</strong> precio alto respecto a su rango reciente. No es señal de venta por sí solo.</li>
+            <li><strong>Toque de banda inferior:</strong> precio bajo respecto al rango reciente.</li>
+            <li>En tendencias fuertes el precio puede recorrer la banda sin revertir.</li>
+          </ul>
+          <div class="edu-nota">Error frecuente: tratar el toque de banda como señal automática de reversión. En tendencia sostenida ese toque es confirmación de fuerza, no agotamiento.</div>
+        </div>
+
+        <div class="edu-card">
+          <h3>RSI — Índice de Fuerza Relativa</h3>
+          <div class="edu-formula">RSI = 100 − [100 / (1 + RS)]
+RS = promedio de ganancias / promedio de pérdidas (14 periodos)</div>
+          <table class="edu">
+            <thead><tr><th>Nivel</th><th>Lectura convencional</th></tr></thead>
+            <tbody>
+              <tr><td>&gt;70</td><td>Sobrecompra</td></tr>
+              <tr><td>30-70</td><td>Zona neutral</td></tr>
+              <tr><td>&lt;30</td><td>Sobreventa</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Divergencia:</strong> el precio marca un máximo superior pero el RSI uno inferior (divergencia bajista), o viceversa. Suele interpretarse como pérdida de impulso.</p>
+          <div class="edu-nota">Un activo puede permanecer sobrecomprado durante semanas en tendencia alcista. El RSI señala condición, no momento de entrada.</div>
+        </div>
+
+        <div class="edu-card">
+          <h3>MACD</h3>
+          <div class="edu-formula">Línea MACD = EMA(12) − EMA(26)
+Señal = EMA(9) del MACD
+Histograma = MACD − Señal</div>
+          <ul>
+            <li>MACD cruza por arriba de la señal: impulso alcista.</li>
+            <li>MACD cruza por debajo: impulso bajista.</li>
+            <li>Cruce de la línea cero: cambio de sesgo de mediano plazo.</li>
+            <li>Histograma creciente: el impulso se acelera.</li>
+          </ul>
+        </div>
+
+        <div class="edu-card">
+          <h3>Volumen</h3>
+          <p>Confirma o desmiente el movimiento del precio.</p>
+          <table class="edu">
+            <thead><tr><th>Precio</th><th>Volumen</th><th>Interpretación</th></tr></thead>
+            <tbody>
+              <tr><td>Sube</td><td>Alto</td><td>Movimiento con respaldo</td></tr>
+              <tr><td>Sube</td><td>Bajo</td><td>Avance débil, poca participación</td></tr>
+              <tr><td>Baja</td><td>Alto</td><td>Presión vendedora genuina</td></tr>
+              <tr><td>Baja</td><td>Bajo</td><td>Posible corrección menor</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="edu-card">
+          <h3>Velas japonesas</h3>
+          <p>Cada vela muestra apertura, máximo, mínimo y cierre. El cuerpo va de apertura a cierre; las mechas marcan los extremos.</p>
+          <table class="edu">
+            <thead><tr><th>Patrón</th><th>Forma</th><th>Lectura</th></tr></thead>
+            <tbody>
+              <tr><td>Martillo</td><td>Cuerpo pequeño arriba, mecha inferior larga</td><td>Rechazo de precios bajos</td></tr>
+              <tr><td>Estrella fugaz</td><td>Cuerpo pequeño abajo, mecha superior larga</td><td>Rechazo de precios altos</td></tr>
+              <tr><td>Envolvente alcista</td><td>Vela verde que cubre la roja previa</td><td>Cambio de presión a compradores</td></tr>
+              <tr><td>Envolvente bajista</td><td>Vela roja que cubre la verde previa</td><td>Cambio de presión a vendedores</td></tr>
+              <tr><td>Doji</td><td>Apertura ≈ cierre</td><td>Indecisión</td></tr>
+              <tr><td>Marubozu</td><td>Cuerpo largo sin mechas</td><td>Dominio claro de un lado</td></tr>
+            </tbody>
+          </table>
+          <p>Los patrones requieren contexto: un martillo tras una caída prolongada tiene más significado que uno en zona lateral.</p>
+        </div>
+
+        <div class="edu-card">
+          <h3>Figuras de precio</h3>
+          <table class="edu">
+            <thead><tr><th>Figura</th><th>Tipo</th><th>Implicación</th></tr></thead>
+            <tbody>
+              <tr><td>Hombro-cabeza-hombro</td><td>Cambio</td><td>Fin de tendencia alcista</td></tr>
+              <tr><td>HCH invertido</td><td>Cambio</td><td>Fin de tendencia bajista</td></tr>
+              <tr><td>Doble techo / piso</td><td>Cambio</td><td>Dos intentos fallidos de romper un nivel</td></tr>
+              <tr><td>Triángulo ascendente</td><td>Continuación</td><td>Mínimos crecientes contra resistencia fija</td></tr>
+              <tr><td>Bandera</td><td>Continuación</td><td>Pausa breve dentro de la tendencia</td></tr>
+              <tr><td>Cuña</td><td>Según contexto</td><td>Convergencia de líneas, suele preceder ruptura</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ FUNDAMENTAL ============ -->
+      <div class="edu-sec" data-edu-sec="fundamental">
+        <div class="edu-card">
+          <h3>Enfoque del análisis fundamental</h3>
+          <p>Estima el <strong>valor intrínseco</strong> de la empresa para compararlo con su precio de mercado. Si el valor estimado supera al precio, se considera subvaluada; en caso contrario, sobrevaluada.</p>
+          <p>Se trabaja en tres niveles: entorno económico (PIB, tasas, inflación, tipo de cambio), industria (competencia, regulación, ciclo) y empresa (estados financieros, administración, ventajas competitivas).</p>
+        </div>
+
+        <div class="edu-card">
+          <h3>Razones de valuación</h3>
+          <table class="edu">
+            <thead><tr><th>Razón</th><th>Fórmula</th><th>Referencia</th><th>Lectura</th></tr></thead>
+            <tbody>
+              <tr><td>P/U (P/E)</td><td>Precio / Utilidad por acción</td><td><span class="v-bien">&lt;15</span> · <span class="v-medio">15-25</span> · <span class="v-mal">&gt;25</span></td><td>Cuánto se paga por cada peso de utilidad</td></tr>
+              <tr><td>P/U adelantado</td><td>Precio / UPA estimada</td><td>Menor al P/U actual sugiere crecimiento esperado</td><td>Expectativa de analistas</td></tr>
+              <tr><td>P/VL (P/B)</td><td>Precio / Valor en libros</td><td><span class="v-bien">&lt;1.5</span> · <span class="v-medio">1.5-3</span> · <span class="v-mal">&gt;3</span></td><td>Relevante en bancos e industrias de activos</td></tr>
+              <tr><td>P/V (P/S)</td><td>Precio / Ventas por acción</td><td><span class="v-bien">&lt;2</span> · <span class="v-medio">2-5</span> · <span class="v-mal">&gt;5</span></td><td>Útil cuando no hay utilidades</td></tr>
+              <tr><td>PEG</td><td>P/U / Crecimiento de UPA</td><td><span class="v-bien">&lt;1</span> · <span class="v-medio">1-2</span> · <span class="v-mal">&gt;2</span></td><td>Ajusta el P/U por crecimiento</td></tr>
+              <tr><td>VE/EBITDA</td><td>Valor empresa / EBITDA</td><td><span class="v-bien">&lt;8</span> · <span class="v-medio">8-12</span> · <span class="v-mal">&gt;12</span></td><td>Permite comparar entre estructuras de capital distintas</td></tr>
+            </tbody>
+          </table>
+          <div class="edu-nota">Las referencias son generales. Un P/U de 30 puede ser razonable en tecnología de alto crecimiento y excesivo en una empresa de servicios públicos. <strong>La comparación válida es contra el sector y contra el histórico de la propia empresa.</strong></div>
+        </div>
+
+        <div class="edu-card">
+          <h3>Razones de rentabilidad</h3>
+          <table class="edu">
+            <thead><tr><th>Razón</th><th>Fórmula</th><th>Referencia</th></tr></thead>
+            <tbody>
+              <tr><td>ROE</td><td>Utilidad neta / Capital contable</td><td><span class="v-bien">&gt;15%</span> · <span class="v-medio">10-15%</span> · <span class="v-mal">&lt;10%</span></td></tr>
+              <tr><td>ROA</td><td>Utilidad neta / Activos totales</td><td><span class="v-bien">&gt;5%</span> · <span class="v-medio">2-5%</span> · <span class="v-mal">&lt;2%</span></td></tr>
+              <tr><td>Margen bruto</td><td>Utilidad bruta / Ventas</td><td>Depende del sector; estable es preferible</td></tr>
+              <tr><td>Margen operativo</td><td>Utilidad operativa / Ventas</td><td><span class="v-bien">&gt;15%</span> · <span class="v-medio">8-15%</span></td></tr>
+              <tr><td>Margen neto</td><td>Utilidad neta / Ventas</td><td><span class="v-bien">&gt;10%</span> · <span class="v-medio">5-10%</span></td></tr>
+            </tbody>
+          </table>
+          <p><strong>Descomposición DuPont:</strong></p>
+          <div class="edu-formula">ROE = Margen neto × Rotación de activos × Apalancamiento</div>
+          <p>Permite distinguir si el ROE proviene de rentabilidad operativa, eficiencia en el uso de activos o del nivel de deuda. Un ROE alto sostenido por apalancamiento implica mayor riesgo.</p>
+        </div>
+
+        <div class="edu-card">
+          <h3>Liquidez y solvencia</h3>
+          <table class="edu">
+            <thead><tr><th>Razón</th><th>Fórmula</th><th>Referencia</th><th>Lectura</th></tr></thead>
+            <tbody>
+              <tr><td>Circulante</td><td>Activo circulante / Pasivo circulante</td><td><span class="v-bien">1.5-3</span></td><td>Capacidad de pago a corto plazo</td></tr>
+              <tr><td>Prueba ácida</td><td>(Activo circulante − inventarios) / Pasivo circulante</td><td><span class="v-bien">&gt;1</span></td><td>Liquidez sin depender de inventarios</td></tr>
+              <tr><td>Deuda / Capital</td><td>Pasivo total / Capital contable</td><td><span class="v-bien">&lt;1</span> · <span class="v-medio">1-2</span> · <span class="v-mal">&gt;2</span></td><td>Nivel de apalancamiento</td></tr>
+              <tr><td>Deuda / EBITDA</td><td>Deuda neta / EBITDA</td><td><span class="v-bien">&lt;3</span> · <span class="v-mal">&gt;4</span></td><td>Años de flujo para cubrir la deuda</td></tr>
+              <tr><td>Cobertura de intereses</td><td>EBIT / Gastos financieros</td><td><span class="v-bien">&gt;3</span></td><td>Holgura para pagar intereses</td></tr>
+            </tbody>
+          </table>
+          <div class="edu-nota">Un circulante muy por encima de 3 puede indicar recursos ociosos; muy por debajo de 1, problemas de liquidez.</div>
+        </div>
+
+        <div class="edu-card">
+          <h3>Dividendos y crecimiento</h3>
+          <table class="edu">
+            <tbody>
+              <tr><td>Rendimiento (yield)</td><td>Dividendo anual / Precio</td></tr>
+              <tr><td>Razón de pago (payout)</td><td>Dividendos / Utilidad neta. Arriba de 80% deja poco margen para reinversión.</td></tr>
+              <tr><td>Crecimiento de ventas</td><td>Variación anual de ingresos</td></tr>
+              <tr><td>Crecimiento de UPA</td><td>Variación anual de utilidad por acción</td></tr>
+            </tbody>
+          </table>
+          <p>Un crecimiento de ventas sin crecimiento de utilidades sugiere compresión de márgenes. Lo contrario puede indicar recorte de costos no sostenible.</p>
+        </div>
+
+        <div class="edu-card">
+          <h3>Señales de sobrevaluación y subvaluación</h3>
+          <table class="edu">
+            <thead><tr><th>Posible sobrevaluación</th><th>Posible subvaluación</th></tr></thead>
+            <tbody>
+              <tr><td>P/U muy por encima del sector</td><td>P/U por debajo del sector con fundamentales estables</td></tr>
+              <tr><td>PEG mayor a 2</td><td>PEG menor a 1</td></tr>
+              <tr><td>P/VL elevado sin ROE que lo justifique</td><td>P/VL menor a 1 con ROE positivo</td></tr>
+              <tr><td>Precio sube mientras las utilidades caen</td><td>Utilidades crecen y el precio no reacciona</td></tr>
+              <tr><td>Márgenes en deterioro</td><td>Márgenes estables o en expansión</td></tr>
+            </tbody>
+          </table>
+          <div class="edu-nota">Una razón baja no implica oportunidad por sí sola. Suele existir una causa: pérdida de participación de mercado, litigio, deuda elevada o deterioro del sector. Conviene identificarla antes de concluir que el mercado se equivoca.</div>
+        </div>
+
+        <div class="edu-card">
+          <h3>Fundamental y técnico en day trading</h3>
+          <p>En operación intradía el análisis fundamental <strong>no determina las entradas</strong>: las razones financieras no cambian en una sesión. Su utilidad es otra.</p>
+          <ul>
+            <li>Seleccionar el universo de instrumentos a operar (empresas sólidas y líquidas).</li>
+            <li>Interpretar reacciones a reportes trimestrales.</li>
+            <li>Evaluar si un movimiento tiene sustento o es solo flujo.</li>
+            <li>Decidir si una posición puede sostenerse más allá del día.</li>
+          </ul>
+          <p>El momento de entrada y salida proviene del análisis técnico y del volumen.</p>
+        </div>
+      </div>
+
+      <!-- ============ FICHA ============ -->
+      <div class="edu-sec" data-edu-sec="ficha">
+        <div class="section" style="margin-bottom:12px">
+          <div class="section-header">
+            <h2>🔎 Ficha fundamental</h2>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" id="fi-tk" placeholder="NVDA" style="background:var(--bg-input);border:1px solid var(--border);color:var(--text);padding:6px 9px;border-radius:6px;font-size:12px;width:110px">
+              <button class="control" onclick="cargarFicha()" style="background:var(--blue);color:#fff;border:none">Consultar</button>
+            </div>
+          </div>
+          <div style="padding:9px 14px;background:var(--bg-card-2);border-bottom:1px solid var(--border);font-size:10.5px;color:var(--text-faint)">
+            Ventas, utilidad neta y razones financieras. Requiere Finnhub. Acciones de EE.UU.
+          </div>
+          <div id="fi-out" style="padding:14px"><div class="empty-state">Escribe un ticker para ver sus estados y razones.</div></div>
+        </div>
       </div>
     </div>
 
@@ -4903,6 +5315,407 @@ window.exportPositionsJSON = function () {
   })();
 
   console.log('[SYNC] auto-sincronizacion activa');
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   EDUCACION: navegacion + ficha fundamental
+   ============================================================ */
+(function () {
+  'use strict';
+
+  // ---------- navegacion entre subsecciones ----------
+  document.querySelectorAll('.edu-nav button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.edu-nav button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      var id = b.dataset.edu;
+      document.querySelectorAll('.edu-sec').forEach(function (s) {
+        s.classList.toggle('on', s.dataset.eduSec === id);
+      });
+    });
+  });
+
+  // ---------- helpers ----------
+  function num(v, dec) { return (v == null || isNaN(v)) ? null : Number(v).toFixed(dec == null ? 2 : dec); }
+  function dinero(v) {
+    if (v == null || isNaN(v)) return '–';
+    var a = Math.abs(v);
+    if (a >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'B MM';
+    if (a >= 1e9) return '$' + (v / 1e9).toFixed(2) + ' mil M';
+    if (a >= 1e6) return '$' + (v / 1e6).toFixed(1) + ' M';
+    return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  // color segun rangos: [buenoMax, medioMax] para "menor es mejor", o invertido
+  function clase(v, bueno, medio, menorMejor) {
+    if (v == null || isNaN(v)) return '';
+    if (menorMejor) return v < bueno ? 'v-bien' : v < medio ? 'v-medio' : 'v-mal';
+    return v > bueno ? 'v-bien' : v > medio ? 'v-medio' : 'v-mal';
+  }
+  function fila(k, v, cls, suf) {
+    return '<div class="ficha-row"><span class="k">' + k + '</span>' +
+           '<span class="v ' + (cls || '') + '">' + (v == null ? '–' : v) + (v != null && suf ? suf : '') + '</span></div>';
+  }
+
+  window.cargarFicha = async function () {
+    var tk = (document.getElementById('fi-tk').value || '').trim().toUpperCase();
+    var out = document.getElementById('fi-out');
+    if (!tk) return;
+    var key = '';
+    try { key = (JSON.parse(localStorage.getItem('dt_config_v3') || '{}')).finnhubKey || ''; } catch (e) {}
+    if (!key && window.DT_CREDS) key = window.DT_CREDS.finnhubKey || '';
+    if (!key) { out.innerHTML = '<div class="empty-state">Falta la API key de Finnhub.</div>'; return; }
+
+    out.innerHTML = '<div class="loading"><span class="spinner"></span>Consultando ' + tk + '…</div>';
+    var m = {}, perfil = {}, fin = null;
+    try {
+      var r1 = await fetch('https://finnhub.io/api/v1/stock/metric?symbol=' + tk + '&metric=all&token=' + key);
+      m = ((await r1.json()) || {}).metric || {};
+      var r2 = await fetch('https://finnhub.io/api/v1/stock/profile2?symbol=' + tk + '&token=' + key);
+      perfil = (await r2.json()) || {};
+      var r3 = await fetch('https://finnhub.io/api/v1/stock/financials-reported?symbol=' + tk + '&freq=annual&token=' + key);
+      var fr = (await r3.json()) || {};
+      fin = (fr.data && fr.data[0]) || null;
+    } catch (e) {
+      out.innerHTML = '<div class="error">Error consultando Finnhub: ' + e.message + '</div>'; return;
+    }
+    if (!Object.keys(m).length && !perfil.name) {
+      out.innerHTML = '<div class="empty-state">Sin datos para ' + tk + '. Finnhub cubre acciones de EE.UU.</div>'; return;
+    }
+
+    // --- estados financieros del ultimo reporte anual ---
+    var ingresos = null, utilidad = null, brutaU = null, activos = null, capital = null;
+    if (fin && fin.report) {
+      var ic = (fin.report.ic || []), bs = (fin.report.bs || []);
+      function buscar(arr, claves) {
+        for (var i = 0; i < arr.length; i++) {
+          var lbl = (arr[i].label || arr[i].concept || '').toLowerCase();
+          for (var j = 0; j < claves.length; j++) {
+            if (lbl.indexOf(claves[j]) !== -1 && typeof arr[i].value === 'number') return arr[i].value;
+          }
+        }
+        return null;
+      }
+      ingresos = buscar(ic, ['total revenue', 'revenues', 'net sales', 'revenue']);
+      utilidad = buscar(ic, ['net income', 'net earnings']);
+      brutaU  = buscar(ic, ['gross profit']);
+      activos = buscar(bs, ['total assets']);
+      capital = buscar(bs, ["total stockholders' equity", 'total equity', "stockholders' equity"]);
+    }
+
+    var pe = m.peTTM != null ? m.peTTM : m.peNormalizedAnnual;
+    var head = '<div style="margin-bottom:12px">' +
+      '<div style="font-size:16px;font-weight:600">' + tk + (perfil.name ? ' · ' + perfil.name : '') + '</div>' +
+      '<div style="font-size:11.5px;color:var(--text-dim);margin-top:2px">' +
+      [perfil.finnhubIndustry, perfil.exchange, perfil.country].filter(Boolean).join(' · ') +
+      (perfil.marketCapitalization ? ' · Cap. ' + dinero(perfil.marketCapitalization * 1e6) : '') +
+      '</div></div>';
+
+    var g = '<div class="ficha-grid">';
+
+    // VALUACION
+    g += '<div class="ficha-box"><h4>Valuación</h4>' +
+      fila('P/U (TTM)', num(pe), clase(pe, 15, 25, true)) +
+      fila('P/U adelantado', num(m.forwardPE)) +
+      fila('P/VL', num(m.pbQuarterly || m.pbAnnual), clase(m.pbQuarterly || m.pbAnnual, 1.5, 3, true)) +
+      fila('P/Ventas', num(m.psTTM || m.psAnnual), clase(m.psTTM || m.psAnnual, 2, 5, true)) +
+      fila('VE/EBITDA', num(m['enterpriseValueOverEBITDATTM'] || m['currentEv/freeCashFlowTTM']), clase(m['enterpriseValueOverEBITDATTM'], 8, 12, true)) +
+      fila('Valor en libros/acción', num(m.bookValuePerShareQuarterly)) +
+      '</div>';
+
+    // RENTABILIDAD
+    var roe = m.roeTTM != null ? m.roeTTM : m.roeRfy;
+    var roa = m.roaTTM != null ? m.roaTTM : m.roaRfy;
+    g += '<div class="ficha-box"><h4>Rentabilidad</h4>' +
+      fila('ROE', num(roe), clase(roe, 15, 10), '%') +
+      fila('ROA', num(roa), clase(roa, 5, 2), '%') +
+      fila('Margen bruto', num(m.grossMarginTTM || m.grossMarginAnnual), clase(m.grossMarginTTM, 40, 20), '%') +
+      fila('Margen operativo', num(m.operatingMarginTTM || m.operatingMarginAnnual), clase(m.operatingMarginTTM, 15, 8), '%') +
+      fila('Margen neto', num(m.netProfitMarginTTM || m.netProfitMarginAnnual), clase(m.netProfitMarginTTM, 10, 5), '%') +
+      '</div>';
+
+    // SOLIDEZ
+    var de = m['totalDebt/totalEquityQuarterly'];
+    var cr = m.currentRatioQuarterly || m.currentRatioAnnual;
+    g += '<div class="ficha-box"><h4>Liquidez y deuda</h4>' +
+      fila('Razón circulante', num(cr), (cr >= 1.5 && cr <= 3) ? 'v-bien' : cr >= 1 ? 'v-medio' : 'v-mal') +
+      fila('Prueba ácida', num(m.quickRatioQuarterly), clase(m.quickRatioQuarterly, 1, 0.7)) +
+      fila('Deuda / Capital', num(de), clase(de, 1, 2, true)) +
+      fila('Deuda LP / Capital', num(m['longTermDebt/equityQuarterly'])) +
+      fila('Cobertura intereses', num(m.netInterestCoverageTTM), clase(m.netInterestCoverageTTM, 3, 1.5)) +
+      '</div>';
+
+    // CRECIMIENTO
+    g += '<div class="ficha-box"><h4>Crecimiento</h4>' +
+      fila('Ventas (anual)', num(m.revenueGrowthTTMYoy), clase(m.revenueGrowthTTMYoy, 10, 0), '%') +
+      fila('Ventas 5 años', num(m.revenueGrowth5Y), clase(m.revenueGrowth5Y, 10, 0), '%') +
+      fila('UPA (anual)', num(m.epsGrowthTTMYoy), clase(m.epsGrowthTTMYoy, 10, 0), '%') +
+      fila('UPA 5 años', num(m.epsGrowth5Y), clase(m.epsGrowth5Y, 10, 0), '%') +
+      fila('Ventas por acción', num(m.revenuePerShareTTM)) +
+      '</div>';
+
+    // DIVIDENDOS Y RIESGO
+    g += '<div class="ficha-box"><h4>Dividendos y riesgo</h4>' +
+      fila('Rendimiento', num(m.dividendYieldIndicatedAnnual), null, '%') +
+      fila('Razón de pago', num(m.payoutRatioTTM), clase(m.payoutRatioTTM, 60, 80, true), '%') +
+      fila('Crecimiento div. 5a', num(m.dividendGrowthRate5Y), null, '%') +
+      fila('Beta', num(m.beta), (m.beta != null && m.beta < 1) ? 'v-bien' : 'v-medio') +
+      fila('Volatilidad 3m', num(m['3MonthADReturnStd'])) +
+      '</div>';
+
+    // RANGO
+    g += '<div class="ficha-box"><h4>Precio y rango</h4>' +
+      fila('Máximo 52 semanas', m['52WeekHigh'] != null ? '$' + num(m['52WeekHigh']) : null) +
+      fila('Mínimo 52 semanas', m['52WeekLow'] != null ? '$' + num(m['52WeekLow']) : null) +
+      fila('Retorno 52 semanas', num(m['52WeekPriceReturnDaily']), clase(m['52WeekPriceReturnDaily'], 0, -10), '%') +
+      fila('Retorno 3 meses', num(m['13WeekPriceReturnDaily']), clase(m['13WeekPriceReturnDaily'], 0, -10), '%') +
+      fila('Vol. promedio 10d', m['10DayAverageTradingVolume'] != null ? (m['10DayAverageTradingVolume']).toFixed(2) + ' M' : null) +
+      '</div>';
+
+    // ESTADOS FINANCIEROS
+    if (ingresos || utilidad) {
+      var margen = (ingresos && utilidad) ? (utilidad / ingresos * 100) : null;
+      g += '<div class="ficha-box"><h4>Último reporte anual</h4>' +
+        fila('Ingresos (ventas)', dinero(ingresos)) +
+        fila('Utilidad bruta', dinero(brutaU)) +
+        fila('Utilidad neta', dinero(utilidad), utilidad > 0 ? 'v-bien' : 'v-mal') +
+        fila('Margen neto', margen != null ? num(margen) : null, clase(margen, 10, 5), '%') +
+        fila('Activos totales', dinero(activos)) +
+        fila('Capital contable', dinero(capital)) +
+        '</div>';
+    }
+
+    g += '</div>';
+
+    // LECTURA RAPIDA
+    var señales = [];
+    if (pe != null && pe > 0 && pe < 15) señales.push(['bien', 'P/U por debajo de 15']);
+    if (pe != null && pe > 30) señales.push(['mal', 'P/U por encima de 30: el mercado descuenta crecimiento alto']);
+    if (roe != null && roe > 15) señales.push(['bien', 'ROE sobre 15%']);
+    if (roe != null && roe < 5) señales.push(['mal', 'ROE bajo: poca rentabilidad sobre el capital']);
+    if (de != null && de > 2) señales.push(['mal', 'Deuda sobre capital mayor a 2']);
+    if (cr != null && cr < 1) señales.push(['mal', 'Razón circulante menor a 1: presión de liquidez']);
+    if (m.revenueGrowthTTMYoy != null && m.revenueGrowthTTMYoy < 0) señales.push(['mal', 'Ventas en contracción']);
+    if (m.revenueGrowthTTMYoy != null && m.revenueGrowthTTMYoy > 15) señales.push(['bien', 'Ventas creciendo más de 15%']);
+    if (m.netProfitMarginTTM != null && m.netProfitMarginTTM > 15) señales.push(['bien', 'Margen neto sobre 15%']);
+
+    var lectura = '';
+    if (señales.length) {
+      lectura = '<div class="edu-card" style="margin-top:12px"><h3>Lectura rápida</h3>' +
+        señales.map(function (s) {
+          return '<div style="padding:3px 0;font-size:12px;color:var(--text-dim)">' +
+            '<span class="' + (s[0] === 'bien' ? 'v-bien' : 'v-mal') + '">' + (s[0] === 'bien' ? '▲' : '▼') + '</span> ' + s[1] + '</div>';
+        }).join('') +
+        '<div class="edu-nota" style="margin-top:10px">Estas observaciones describen los números, no constituyen recomendación. Compara siempre contra el sector y el histórico de la empresa.</div></div>';
+    }
+
+    out.innerHTML = head + g + lectura;
+  };
+
+  var inp = document.getElementById('fi-tk');
+  if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') cargarFicha(); });
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   ESTACIONALIDAD
+   Rendimiento promedio por mes calendario a partir de cierres
+   mensuales historicos (Yahoo chart, interval=1mo).
+   ============================================================ */
+(function () {
+  'use strict';
+  var MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var CACHE_DIAS = 30;
+
+  function cacheGet(tk, años) {
+    try {
+      var d = JSON.parse(localStorage.getItem('dt_season_' + tk + '_' + años) || 'null');
+      if (d && (Date.now() - d.t) < CACHE_DIAS * 864e5) return d.v;
+    } catch (e) {}
+    return null;
+  }
+  function cacheSet(tk, años, v) {
+    try { localStorage.setItem('dt_season_' + tk + '_' + años, JSON.stringify({ t: Date.now(), v: v })); } catch (e) {}
+  }
+
+  /* Devuelve {meses:[{m,prom,pos,n,mejorAño,peorAño}], años, ticker} */
+  window.calcEstacionalidad = async function (tk, años) {
+    años = años || 10;
+    var hit = cacheGet(tk, años);
+    if (hit) return hit;
+
+    var url = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(tk) +
+              '?range=' + años + 'y&interval=1mo';
+    var d = await fetchWithProxy(url, { timeout: 14000 });
+    var r = d && d.chart && d.chart.result && d.chart.result[0];
+    if (!r) throw new Error('sin datos historicos');
+    var ts = r.timestamp || [];
+    var cl = (((r.indicators || {}).adjclose || [{}])[0] || {}).adjclose
+          || (((r.indicators || {}).quote || [{}])[0] || {}).close || [];
+    if (ts.length < 24) throw new Error('historico insuficiente (' + ts.length + ' meses)');
+
+    // retorno mensual = (cierre mes / cierre mes anterior) - 1
+    var acum = {};   // mes -> [retornos]
+    for (var i = 1; i < ts.length; i++) {
+      var a = cl[i - 1], b = cl[i];
+      if (a == null || b == null || a <= 0) continue;
+      var fecha = new Date(ts[i] * 1000);
+      var m = fecha.getMonth();
+      var ret = (b / a - 1) * 100;
+      if (!isFinite(ret) || Math.abs(ret) > 95) continue;   // descartar atipicos
+      (acum[m] = acum[m] || []).push({ r: ret, año: fecha.getFullYear() });
+    }
+
+    var meses = [];
+    for (var m = 0; m < 12; m++) {
+      var arr = acum[m] || [];
+      if (!arr.length) { meses.push({ m: m, prom: null, pos: null, n: 0 }); continue; }
+      var suma = arr.reduce(function (s, x) { return s + x.r; }, 0);
+      var positivos = arr.filter(function (x) { return x.r > 0; }).length;
+      var mejor = arr.reduce(function (p, x) { return x.r > p.r ? x : p; }, arr[0]);
+      var peor  = arr.reduce(function (p, x) { return x.r < p.r ? x : p; }, arr[0]);
+      meses.push({ m: m, prom: suma / arr.length, pos: positivos / arr.length * 100,
+                   n: arr.length, mejor: mejor, peor: peor });
+    }
+    var out = { ticker: tk, años: años, meses: meses, muestras: ts.length };
+    cacheSet(tk, años, out);
+    return out;
+  };
+
+  function mesesValidos(res) { return res.meses.filter(function (x) { return x.prom != null; }); }
+  function mejorMes(res) {
+    var v = mesesValidos(res); if (!v.length) return null;
+    return v.reduce(function (p, x) { return x.prom > p.prom ? x : p; }, v[0]);
+  }
+  function peorMes(res) {
+    var v = mesesValidos(res); if (!v.length) return null;
+    return v.reduce(function (p, x) { return x.prom < p.prom ? x : p; }, v[0]);
+  }
+
+  window.verEstacionalidad = async function () {
+    var tk = (document.getElementById('es-tk').value || '').trim().toUpperCase();
+    var años = parseInt(document.getElementById('es-años').value) || 10;
+    var out = document.getElementById('es-out');
+    if (!tk) return;
+    out.innerHTML = '<div class="loading"><span class="spinner"></span>Calculando ' + años + ' años de ' + tk + '…</div>';
+    var res;
+    try { res = await calcEstacionalidad(tk, años); }
+    catch (e) { out.innerHTML = '<div class="error">No pude calcular ' + tk + ': ' + e.message + '</div>'; return; }
+
+    var v = mesesValidos(res);
+    var mx = Math.max.apply(null, v.map(function (x) { return Math.abs(x.prom); })) || 1;
+    var mejor = mejorMes(res), peor = peorMes(res);
+    var hoy = new Date().getMonth();
+    var promAnual = v.reduce(function (s, x) { return s + x.prom; }, 0);
+
+    var barras = '<div class="mes-grid">' + res.meses.map(function (x) {
+      if (x.prom == null) return '<div class="mes-col"><div class="mes-barra"></div><div class="mes-lbl">' + MESES[x.m] + '</div></div>';
+      var alt = Math.max(3, Math.abs(x.prom) / mx * 80);
+      var neg = x.prom < 0;
+      var color = neg ? 'var(--red)' : 'var(--green)';
+      var cls = 'mes-col' + (x.m === hoy ? ' hoy' : '') + (mejor && x.m === mejor.m ? ' mejor' : '') + (peor && x.m === peor.m ? ' peor' : '');
+      return '<div class="' + cls + '" title="' + MESES[x.m] + ': ' + x.prom.toFixed(2) + '% promedio · ' +
+             x.pos.toFixed(0) + '% de años positivos · ' + x.n + ' observaciones">' +
+             '<div class="mes-barra' + (neg ? ' neg' : '') + '"><div class="b" style="height:' + alt + 'px;background:' + color + '"></div></div>' +
+             '<div class="mes-lbl">' + MESES[x.m] + '</div>' +
+             '<div class="mes-val" style="color:' + color + '">' + (x.prom >= 0 ? '+' : '') + x.prom.toFixed(1) + '</div>' +
+             '</div>';
+    }).join('') + '</div>';
+
+    var resumen = '<div class="est-resumen">' +
+      '<div class="est-box"><div class="t">Mejor mes</div><div class="v" style="color:var(--green)">' +
+        (mejor ? MESES[mejor.m] + ' ' + (mejor.prom >= 0 ? '+' : '') + mejor.prom.toFixed(2) + '%' : '–') +
+        '</div><div class="s">' + (mejor ? mejor.pos.toFixed(0) + '% de años en positivo' : '') + '</div></div>' +
+      '<div class="est-box"><div class="t">Peor mes</div><div class="v" style="color:var(--red)">' +
+        (peor ? MESES[peor.m] + ' ' + peor.prom.toFixed(2) + '%' : '–') +
+        '</div><div class="s">' + (peor ? peor.pos.toFixed(0) + '% de años en positivo' : '') + '</div></div>' +
+      '<div class="est-box"><div class="t">Mes actual (' + MESES[hoy] + ')</div><div class="v" style="color:' +
+        (res.meses[hoy].prom >= 0 ? 'var(--green)' : 'var(--red)') + '">' +
+        (res.meses[hoy].prom != null ? (res.meses[hoy].prom >= 0 ? '+' : '') + res.meses[hoy].prom.toFixed(2) + '%' : '–') +
+        '</div><div class="s">' + (res.meses[hoy].pos != null ? res.meses[hoy].pos.toFixed(0) + '% positivos · ' + res.meses[hoy].n + ' años' : '') + '</div></div>' +
+      '<div class="est-box"><div class="t">Suma 12 meses</div><div class="v" style="color:' +
+        (promAnual >= 0 ? 'var(--green)' : 'var(--red)') + '">' + (promAnual >= 0 ? '+' : '') + promAnual.toFixed(1) + '%' +
+        '</div><div class="s">promedio anual implícito</div></div>' +
+      '</div>';
+
+    var tabla = '<div class="table-wrap"><table><thead><tr><th>Mes</th><th class="right">Promedio</th>' +
+      '<th class="right">% años +</th><th class="right">Obs.</th><th class="right">Mejor año</th><th class="right">Peor año</th></tr></thead><tbody>' +
+      res.meses.map(function (x) {
+        if (x.prom == null) return '';
+        return '<tr' + (x.m === hoy ? ' style="background:var(--blue-bg)"' : '') + '>' +
+          '<td style="font-weight:600">' + MESES[x.m] + (x.m === hoy ? ' ·' : '') + '</td>' +
+          '<td class="right"><span class="change ' + (x.prom >= 0 ? 'up' : 'down') + '">' + (x.prom >= 0 ? '+' : '') + x.prom.toFixed(2) + '%</span></td>' +
+          '<td class="right" style="color:' + (x.pos >= 60 ? 'var(--green)' : x.pos <= 40 ? 'var(--red)' : 'var(--text-dim)') + '">' + x.pos.toFixed(0) + '%</td>' +
+          '<td class="right" style="color:var(--text-faint)">' + x.n + '</td>' +
+          '<td class="right" style="font-size:11px;color:var(--text-dim)">' + (x.mejor ? x.mejor.año + ' ' + x.mejor.r.toFixed(1) + '%' : '–') + '</td>' +
+          '<td class="right" style="font-size:11px;color:var(--text-dim)">' + (x.peor ? x.peor.año + ' ' + x.peor.r.toFixed(1) + '%' : '–') + '</td>' +
+          '</tr>';
+      }).join('') + '</tbody></table></div>';
+
+    var aviso = '<div class="edu-nota" style="margin-top:10px"><strong>Cómo leerlo:</strong> ' +
+      'el promedio se calcula sobre ' + res.muestras + ' meses de historia. ' +
+      'El <strong>% de años en positivo</strong> importa tanto como el promedio: un mes con +4% de promedio pero solo 40% de años positivos ' +
+      'suele estar dominado por un año atípico, no por un patrón. Con 10 años hay apenas 10 observaciones por mes, ' +
+      'muestra pequeña para concluir causalidad. La estacionalidad describe el pasado, no predice el futuro.</div>';
+
+    out.innerHTML = '<div style="font-size:15px;font-weight:600;margin-bottom:2px">' + tk +
+      ' <span style="font-size:11.5px;color:var(--text-dim);font-weight:400">· ' + res.años + ' años · ' + res.muestras + ' meses</span></div>' +
+      resumen + barras + tabla + aviso;
+  };
+
+  /* ---------- lote: toda la watchlist ---------- */
+  window.estacionalidadLote = async function () {
+    var cf = {};
+    try { cf = JSON.parse(localStorage.getItem('dt_config_v3') || '{}'); } catch (e) {}
+    var lista = [].concat(cf.us || [], cf.etf || [], cf.bmv || []);
+    if (!lista.length) { document.getElementById('es-lote').innerHTML = '<div class="empty-state">Sin watchlist configurada.</div>'; return; }
+    var cont = document.getElementById('es-lote');
+    var prog = document.getElementById('es-prog');
+    var filas = [], hoy = new Date().getMonth(), errores = 0;
+
+    for (var i = 0; i < lista.length; i++) {
+      var tk = lista[i];
+      if (prog) prog.textContent = (i + 1) + '/' + lista.length + ' · ' + tk;
+      try {
+        var res = await calcEstacionalidad(tk, 10);
+        var mj = mejorMes(res), pr = peorMes(res), act = res.meses[hoy];
+        if (mj && pr) filas.push({ tk: tk, mejor: mj, peor: pr, actual: act, años: res.años });
+      } catch (e) { errores++; }
+      if (!cacheGet(tk, 10)) await new Promise(function (r) { setTimeout(r, 350); });
+    }
+    if (prog) prog.textContent = filas.length + ' calculados' + (errores ? ' · ' + errores + ' sin datos' : '');
+
+    if (!filas.length) { cont.innerHTML = '<div class="empty-state">No se pudo calcular ninguno. Yahoo puede estar bloqueando.</div>'; return; }
+
+    // ordenar por el mes actual, de mejor a peor
+    filas.sort(function (a, b) { return (b.actual.prom == null ? -99 : b.actual.prom) - (a.actual.prom == null ? -99 : a.actual.prom); });
+
+    cont.innerHTML = '<div class="table-wrap"><table><thead><tr>' +
+      '<th>Ticker</th><th>Mejor mes</th><th class="right">Prom.</th><th>Peor mes</th><th class="right">Prom.</th>' +
+      '<th>' + MESES[hoy] + ' (hoy)</th><th class="right">% años +</th></tr></thead><tbody>' +
+      filas.map(function (f) {
+        var a = f.actual;
+        return '<tr class="row-click" onclick="document.getElementById(\'es-tk\').value=\'' + f.tk + '\';verEstacionalidad();window.scrollTo(0,0)">' +
+          '<td class="symbol symbol-clickable">' + f.tk.replace('.MX', '') + '</td>' +
+          '<td style="color:var(--green);font-weight:600">' + MESES[f.mejor.m] + '</td>' +
+          '<td class="right"><span class="change up">+' + f.mejor.prom.toFixed(2) + '%</span></td>' +
+          '<td style="color:var(--red);font-weight:600">' + MESES[f.peor.m] + '</td>' +
+          '<td class="right"><span class="change down">' + f.peor.prom.toFixed(2) + '%</span></td>' +
+          '<td>' + (a.prom != null ? '<span class="change ' + (a.prom >= 0 ? 'up' : 'down') + '">' + (a.prom >= 0 ? '+' : '') + a.prom.toFixed(2) + '%</span>' : '–') + '</td>' +
+          '<td class="right" style="color:' + (a.pos >= 60 ? 'var(--green)' : a.pos <= 40 ? 'var(--red)' : 'var(--text-dim)') + '">' +
+            (a.pos != null ? a.pos.toFixed(0) + '%' : '–') + '</td>' +
+          '</tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<div style="padding:9px 14px;font-size:10.5px;color:var(--text-faint);border-top:1px solid var(--border)">' +
+      filas.length + ' tickers · 10 años · ordenado por el promedio histórico de ' + MESES[hoy] + ' · click en una fila para el detalle</div>';
+  };
+
+  var inp = document.getElementById('es-tk');
+  if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') verEstacionalidad(); });
 })();
 </script>
 
